@@ -86,7 +86,7 @@ app = webapp2.WSGIApplication([
 #app.error_handlers[404] = handle_404
 #app.error_handlers[500] = handle_500
 
-#JSON Date encoder
+#JSON Date encoder 
 class DateEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime):
