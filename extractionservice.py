@@ -47,7 +47,7 @@ class ExtractionService:
 							exitRate=float(page[4])
 							)
 						)
-			snap = PageSnapshot(url=pageURL, prevPages=nextPageHits)
+			snap = PageSnapshot(url=pageURL, nextPages=nextPageHits)
 			snap.put()
 		else:
 			snap = ss[0]		
