@@ -34,30 +34,46 @@ class ExtractionService:
 		ss = PageSnapshot.query(PageSnapshot.url==pageURL).order(-PageSnapshot.date).fetch(1)
 		
 		if len(ss) == 0 or ss[0].date < expdate:
-			nextPages = self.run_navigation_query(pageURL)
-			nextPageHits = []
-			for page in nextPages.get("rows"):
-				if page[0] != pageURL:
-					nextPageHits.append(
-						PageHits(
-							url=page[0],
-							title=page[1],
-							hits=int(page[2]),
-							avgTime=float(page[3]),
-							exitRate=float(page[4])
-							)
-						)
-			snap = PageSnapshot(url=pageURL, nextPages=nextPageHits)
+			
+			#Next Pages
+			nextPages = self.run_query(self.build_navigation_query(pageURL, "previousPagePath", "pagePath"))
+			nextPageHits = self.build_page_hit(pageURL, nextPages.get("rows"))
+
+			#Previous Pages
+			prevPages = self.run_query(self.build_navigation_query(pageURL, "pagePath", "previousPagePath"))
+			prevPageHits = self.build_page_hit(pageURL, prevPages.get("rows"))
+			
+
+			#Dest Pages
+			destPages = self.run_query(self.build_navigation_query(pageURL, "pagePath", "exitPagePath"))
+			destPageHits = self.build_page_hit(pageURL, destPages.get("rows"))
+			
+			#Search Queries
+			searchQueries = self.run_query(self.build_search_query(pageURL))
+
+			snap = PageSnapshot(url=pageURL, nextPages=nextPageHits, prevPages=prevPageHits, destPages=destPageHits)
 			snap.put()
 		else:
 			snap = ss[0]		
 		return snap
 
-
-	def run_navigation_query(self, url):
+	def build_page_hit(self, pageURL, rows):
+		PageHitsList = []
+		for page in rows:
+			if page[0] != pageURL:
+				PageHitsList.append(
+					PageHits(
+						url=page[0],
+						title=page[1],
+						hits=int(page[2]),
+						avgTime=float(page[3]),
+						exitRate=float(page[4])
+						)
+					)
+		return PageHitsList
+	def run_query(self, query):
 		# Try to make a request to the API. Print the results or handle errors.
 		try:
-			query = self.build_navigation_query(url)
 			results = query.execute()		
 			return results
 		except TypeError, error:
@@ -75,7 +91,7 @@ class ExtractionService:
 				'the application to re-authorize')
 
 			
-	def build_navigation_query(self, url):
+	def build_navigation_query(self, url, filter, dimension):
 	  """Returns a query object to retrieve data from the Core Reporting API.
 
 	  Args:
@@ -88,9 +104,29 @@ class ExtractionService:
 	      start_date=startdate.strftime('%Y-%m-%d'),
 	      end_date=date.today().strftime('%Y-%m-%d'),
 	      metrics='ga:pageviews,ga:avgTimeOnPage,ga:exitRate',
-	      dimensions='ga:pagePath,ga:pageTitle',
+	      dimensions='ga:' + dimension + ',ga:pageTitle',
 	      sort='-ga:pageviews',
-	      filters='ga:PreviousPagePath==' + url,
+	      filters='ga:' + filter + '==' + url,
 	      start_index='1',
 	      max_results='20')
+
+  	def build_search_query(self, url):
+	  """Returns a query object to retrieve data from the Core Reporting API.
+
+	  Args:
+	    service: The service object built by the Google API Python client library.
+	    table_id: str The table ID form which to retrieve data.
+	  """
+	  startdate = date.today() - timedelta(days=14)
+	  return self.service.data().ga().get(
+	      ids=self.table_id,
+	      start_date=startdate.strftime('%Y-%m-%d'),
+	      end_date=date.today().strftime('%Y-%m-%d'),
+	      metrics='ga:searchResultViews',
+	      dimensions='ga:searchKeyword,ga:exitPagePath',
+	      sort='-ga:searchResultViews',
+	      filters='ga:prevPagePath==' + url,
+	      start_index='1',
+	      max_results='20')
+
 

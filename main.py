@@ -26,7 +26,7 @@ class MainHandler(webapp2.RequestHandler):
 	def get(self):		
 
 		x = ExtractionService('ga:991324')
-		shapshot = x.run_navigation_query("/default.aspx")
+		shapshot = x.run_query(x.build_navigation_query("/default.aspx", "previousPagePath", "pagePath"))
 		template_values = {   
 			'snapshot': shapshot
 		}
