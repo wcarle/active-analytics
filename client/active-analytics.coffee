@@ -53,8 +53,13 @@ class Active.Tools.HoverSuggestions
                         origin.tooltipster('content', $("<ul>" + links + "</ul>")).data('ajax', 'cached')
                     )
             })
-        
-        
+class Active.Tools.SearchSuggestions
+    @getSuggestions = (searchSuggestions) ->
+        service = Active.Service.getInstance()
+        service.getPageSnapshot(window.location.pathname, (page) ->
+            console.log(page)
+            window.suggestions = page.Searches
+        )        
             
 
 #Page Namespace
@@ -73,6 +78,7 @@ class Active.ViewModels.Page
         @DestPages = data.destPages
         @PrevPages = data.prevPages
         @NextPages = data.nextPages
+        @Searches = data.searches
                 
   
 #jQuery page load

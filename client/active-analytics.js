@@ -102,6 +102,22 @@ Active.Tools.HoverSuggestions = (function() {
 
 })();
 
+Active.Tools.SearchSuggestions = (function() {
+  function SearchSuggestions() {}
+
+  SearchSuggestions.getSuggestions = function(searchSuggestions) {
+    var service;
+    service = Active.Service.getInstance();
+    return service.getPageSnapshot(window.location.pathname, function(page) {
+      console.log(page);
+      return window.suggestions = page.Searches;
+    });
+  };
+
+  return SearchSuggestions;
+
+})();
+
 namespace("ViewModels");
 
 
@@ -122,6 +138,7 @@ Active.ViewModels.Page = (function() {
     this.DestPages = data.destPages;
     this.PrevPages = data.prevPages;
     this.NextPages = data.nextPages;
+    this.Searches = data.searches;
   }
 
   return Page;
