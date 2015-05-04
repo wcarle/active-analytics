@@ -124,6 +124,7 @@
         this.searchSuggestions = function(element){
             var buildAutocomplete = function(data){
                 var suggestions = [];
+                console.log(data.searches);
                 $.each(data.searches, function(i, item){
                     suggestions.push({href: item.destURL.replace(_svc.settings.indexPage, ""), value: item.keyword})
                 });
@@ -301,24 +302,24 @@
 }( jQuery ));
 
 //Example implementation
+var host = "http://localhost:8082"
 $(document).ready(function(){
-    var host = "http://localhost:8082"
     $("head").append("<link href='" + host + "/client/lib/tooltipster.css' rel='stylesheet' />")
     $.getScript( host + "/client/lib/jquery.tooltipster.min.js", function( data, textStatus, jqxhr ) {setTimeout(init, 1000)});
 });
 
 function init(){
-    $("#box").ActiveAnalytics("search", {serviceURL: "http://localhost:8082"});
-    $("#simple a, .audience a").ActiveAnalytics("hover", {serviceURL: "http://localhost:8082"});
+    $("#box").ActiveAnalytics("search", {serviceURL: host});
+    $("#simple a, .audience a").ActiveAnalytics("hover", {serviceURL: host});
     $("#UNFbignav li a")
-        .ActiveAnalytics("rankstyle", {serviceURL: "http://localhost:8082", rank: {
+        .ActiveAnalytics("rankstyle", {serviceURL: host, rank: {
             rangeStart: "#EEEFF0",
             rangeEnd: "#86C3FF",
             rankBy: "hits",
             style: "background-color",
             distribution:"even"
         }})
-        .ActiveAnalytics("rankstyle", {serviceURL: "http://localhost:8082", rank: {
+        .ActiveAnalytics("rankstyle", {serviceURL: host, rank: {
             rangeStart: 11,
             rangeEnd: 13,
             rankBy: "hits",
@@ -326,7 +327,7 @@ function init(){
             unit: "px"
         }}).css({"color":"black"});
     $("#UNFbignav ul").css({"height": "auto"});
-    $("#leftCol table li a").ActiveAnalytics("rankstyle", {serviceURL: "http://localhost:8082", rank: {
+    $("#leftCol table li a").ActiveAnalytics("rankstyle", {serviceURL: host, rank: {
             rangeStart: "#FFFFFF",
             rangeEnd: "#FFFF24",
             rankBy: "hits",
