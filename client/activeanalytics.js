@@ -57,7 +57,6 @@
             else{
                 callback(cacheVal);
             }
-            
         }
         function prepareURL(url){
             url = url.replace(window.location.origin,"");
@@ -99,9 +98,9 @@
             newColor.r = makeChannel(c1.r, c2.r);
             newColor.g = makeChannel(c1.g, c2.g);
             newColor.b = makeChannel(c1.b, c2.b);
-            newColor.cssColor = "#" + 
-                                makeColorPiece(newColor.r) + 
-                                makeColorPiece(newColor.g) + 
+            newColor.cssColor = "#" +
+                                makeColorPiece(newColor.r) +
+                                makeColorPiece(newColor.g) +
                                 makeColorPiece(newColor.b);
             return newColor.cssColor;
         }
@@ -156,7 +155,6 @@
             this.getSnapshot(window.location.pathname, function(data){
                 buildAutocomplete(data);
             });
-           
         }
         this.hoverSuggestions = function(elements){
             var buildHoverSuggestions = function(){
@@ -259,7 +257,7 @@
 
         }
     }
-    
+
     //ActiveAnalytics jQuery Plugin
     $.fn.ActiveAnalytics = function(action, options) {
         var _settings = $.extend({
