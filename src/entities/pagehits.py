@@ -1,7 +1,7 @@
 from google.appengine.ext import ndb
 
 class PageHits(ndb.Model):
-  """Models an individual PageHit"""  
+  """Models an individual PageHit"""
   url = ndb.StringProperty(indexed=True)
   title = ndb.StringProperty(indexed=False)
   hits = ndb.IntegerProperty(indexed=False)

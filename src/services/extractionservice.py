@@ -1,8 +1,8 @@
 import argparse
 import sys
+import logging
 
 from apiclient.errors import HttpError
-from apiclient import sample_tools
 from google.appengine.api import memcache
 from apiclient.discovery import build
 from oauth2client.client import AccessTokenRefreshError
@@ -13,7 +13,6 @@ from src.entities.pagesnapshot import *
 from src.entities.pagehits import *
 from src.entities.search import *
 from src.entities.pageranking import *
-import logging
 
 
 logger = logging.getLogger(__name__)
@@ -26,17 +25,15 @@ class ExtractionService:
   def __init__ (self, table):
     #app engine
     credentials = AppAssertionCredentials(scope='https://www.googleapis.com/auth/analytics.readonly')
-
     http_auth = credentials.authorize(Http(memcache))
     self.service = build('analytics', 'v3', http=http_auth, developerKey=api_key)
     self.table_id = table
-   
-    
+
   def get_page_snapshot(self, pageURL):
 
     expdate = datetime.today() - cache_time
     dbSnapshot = PageSnapshot.query(ndb.AND(PageSnapshot.url==pageURL, PageSnapshot.date > expdate)).fetch(1)
-    
+
     if disable_cache or len(dbSnapshot) == 0:
       #Next Pages
       nextPages = self.run_query(self.build_navigation_query(pageURL, "previousPagePath", "pagePath"))
@@ -45,12 +42,11 @@ class ExtractionService:
       #Previous Pages
       prevPages = self.run_query(self.build_navigation_query(pageURL, "pagePath", "previousPagePath"))
       prevPageHits = self.build_page_hit(pageURL, prevPages.get("rows"))
-      
 
       #Dest Pages
       destPages = self.run_query(self.build_navigation_query(pageURL, "pagePath", "exitPagePath"))
       destPageHits = self.build_page_hit(pageURL, destPages.get("rows"))
-      
+
       #Search Queries
       searchQueriesResults = self.run_query(self.build_search_query(pageURL))
       searchQueries = self.build_searches(pageURL, searchQueriesResults.get("rows"))
@@ -58,7 +54,7 @@ class ExtractionService:
       snap = PageSnapshot(url=pageURL, nextPages=nextPageHits, prevPages=prevPageHits, destPages=destPageHits, searches=searchQueries)
       snap.put()
     else:
-      snap = dbSnapshot[0]    
+      snap = dbSnapshot[0]
     return snap
 
   def get_global_ranking(self, urls):
@@ -105,6 +101,7 @@ class ExtractionService:
             )
           )
     return PageHitsList
+
   def build_searches(self, pageURL, rows):
     keywords = []
     searchQueryList = []
@@ -119,12 +116,12 @@ class ExtractionService:
             hits=int(query[3])
             )
           )
-        
     return searchQueryList
+
   def run_query(self, query):
     # Try to make a request to the API. Print the results or handle errors.
     try:
-      results = query.execute()    
+      results = query.execute()
       return results
     except TypeError, error:
       # Handle errors in constructing a query.
@@ -140,7 +137,6 @@ class ExtractionService:
       logger.info('The credentials have been revoked or expired, please re-run '
         'the application to re-authorize')
 
-      
   def build_navigation_query(self, url, filter, dimension):
     """Returns a query object to retrieve data from the Core Reporting API.
 

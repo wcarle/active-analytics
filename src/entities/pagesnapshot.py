@@ -7,7 +7,7 @@ class PageSnapshot(ndb.Model):
   id = ndb.StringProperty(indexed=True)
   url = ndb.StringProperty(indexed=True)
   prevPages = ndb.StructuredProperty(PageHits, repeated=True)
-  nextPages = ndb.StructuredProperty(PageHits, repeated=True)  
+  nextPages = ndb.StructuredProperty(PageHits, repeated=True)
   destPages = ndb.StructuredProperty(PageHits, repeated=True)
   searches = ndb.StructuredProperty(Search, repeated=True)
   date = ndb.DateTimeProperty(auto_now_add=True)

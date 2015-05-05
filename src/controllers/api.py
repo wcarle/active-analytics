@@ -1,22 +1,13 @@
-#Active Analytics
-#
-import os
-import urllib
+#API Controller
 import string
-import random
 import json
+import webapp2
 from datetime import datetime, timedelta
 from json import JSONEncoder
-from google.appengine.api import users
-from google.appengine.ext import ndb
 from src.services.extractionservice import ExtractionService
 from src.entities.pagesnapshot import *
 
-import jinja2
-import webapp2
-
-# [END imports]
-
+# SnapshotHandler: Get analytics snapshot of specified page
 class SnapshotHandler(webapp2.RequestHandler):
   def get(self):
     url = self.request.GET["url"]
@@ -28,6 +19,7 @@ class SnapshotHandler(webapp2.RequestHandler):
 
     self.response.write(json_response(json_snapshot, self.request.GET["callback"]))
 
+# RankingHandler: Rank the given pages based on analytics data
 class RankingHandler(webapp2.RequestHandler):
   def get(self):
     urls = self.request.GET["urls"]
@@ -41,13 +33,14 @@ class RankingHandler(webapp2.RequestHandler):
     json_rankings = "[" + string.join(srankings,", ") + "]"
     self.response.write(json_response(json_rankings, self.request.GET["callback"]))
 
+# Convert json string to jsonp response
 def json_response(json, callback):
   if callback is not None:
     return callback + "(" + json + ")"
   else:
     return json
 
-#JSON Date encoder 
+#JSON Date Encoder: convert dates properly in JSON string
 class DateEncoder(JSONEncoder):
   def default(self, obj):
     if isinstance(obj, datetime):

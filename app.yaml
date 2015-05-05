@@ -13,7 +13,7 @@ handlers:
   expiration: "1d 0m"
 - url: /js
   static_dir: js
-  expiration: "1d 0m" 
+  expiration: "1d 0m"
 - url: /client
   static_dir: client
   expiration: "1d 0m"
