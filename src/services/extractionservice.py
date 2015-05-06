@@ -3,8 +3,8 @@ import sys
 import logging
 
 from apiclient.errors import HttpError
-from google.appengine.api import memcache
 from apiclient.discovery import build
+from google.appengine.api import memcache
 from oauth2client.client import AccessTokenRefreshError
 from oauth2client.appengine import AppAssertionCredentials
 from httplib2 import Http
@@ -21,18 +21,26 @@ cache_time = timedelta(minutes=60)
 query_range = timedelta(days=14)
 disable_cache = False
 
+
 class ExtractionService:
-  def __init__ (self, table):
-    #app engine
+  def __init__ (self, table, date = None):
+
+    if date is not None:
+      self.today = date
+    else:
+      self.today = datetime.today()
+    logger.info("date:" + str(self.today))
+    self.startdate = self.today - query_range
+    self.expdate = self.today - cache_time
+
     credentials = AppAssertionCredentials(scope='https://www.googleapis.com/auth/analytics.readonly')
     http_auth = credentials.authorize(Http(memcache))
     self.service = build('analytics', 'v3', http=http_auth, developerKey=api_key)
     self.table_id = table
 
   def get_page_snapshot(self, pageURL):
-
-    expdate = datetime.today() - cache_time
-    dbSnapshot = PageSnapshot.query(ndb.AND(PageSnapshot.url==pageURL, PageSnapshot.date > expdate)).fetch(1)
+    dbSnapshot = PageSnapshot.query(
+      ndb.AND(PageSnapshot.url==pageURL, PageSnapshot.date > self.expdate, PageSnapshot.date <= self.today)).fetch(1)
 
     if disable_cache or len(dbSnapshot) == 0:
       #Next Pages
@@ -51,7 +59,7 @@ class ExtractionService:
       searchQueriesResults = self.run_query(self.build_search_query(pageURL))
       searchQueries = self.build_searches(pageURL, searchQueriesResults.get("rows"))
 
-      snap = PageSnapshot(url=pageURL, nextPages=nextPageHits, prevPages=prevPageHits, destPages=destPageHits, searches=searchQueries)
+      snap = PageSnapshot(date=self.today, url=pageURL, nextPages=nextPageHits, prevPages=prevPageHits, destPages=destPageHits, searches=searchQueries)
       snap.put()
     else:
       snap = dbSnapshot[0]
@@ -59,10 +67,9 @@ class ExtractionService:
 
   def get_global_ranking(self, urls):
 
-    expdate = datetime.today() - cache_time
     pageRankings = []
     if not disable_cache and len(urls) > 0:
-      dbRankings = PageRanking.query(ndb.AND(PageRanking.url.IN(urls), PageRanking.date > expdate)).fetch()
+      dbRankings = PageRanking.query(ndb.AND(PageRanking.url.IN(urls), PageRanking.date > self.expdate, PageSnapshot.date <= self.today)).fetch()
       for dbRanking in dbRankings:
         if dbRanking.url in urls:
           pageRankings.append(dbRanking)
@@ -75,7 +82,7 @@ class ExtractionService:
       for ranking in rankings:
         #Dont save duplicate results
         if ranking.url in urls:
-          createRanking = PageRanking(url=ranking.url, stats=ranking)
+          createRanking = PageRanking(date=self.today, url=ranking.url, stats=ranking)
           bulkInsert.append(createRanking)
           pageRankings.append(createRanking)
           urls.remove(ranking.url)
@@ -144,11 +151,10 @@ class ExtractionService:
     service: The service object built by the Google API Python client library.
     table_id: str The table ID form which to retrieve data.
     """
-    startdate = date.today() - query_range
     return self.service.data().ga().get(
       ids=self.table_id,
-      start_date=startdate.strftime('%Y-%m-%d'),
-      end_date=date.today().strftime('%Y-%m-%d'),
+      start_date=self.startdate.strftime('%Y-%m-%d'),
+      end_date=self.today.strftime('%Y-%m-%d'),
       metrics='ga:pageviews,ga:avgTimeOnPage,ga:exitRate',
       dimensions='ga:' + dimension + ',ga:pageTitle',
       sort='-ga:pageviews',
@@ -157,7 +163,6 @@ class ExtractionService:
       max_results='20')
 
   def build_page_query(self, urls):
-    startdate = date.today() - query_range
     filters = ""
     first = True
     for url in urls:
@@ -168,8 +173,8 @@ class ExtractionService:
       filters += "ga:pagePath==" + url
     return self.service.data().ga().get(
       ids=self.table_id,
-      start_date=startdate.strftime('%Y-%m-%d'),
-      end_date=date.today().strftime('%Y-%m-%d'),
+      start_date=self.startdate.strftime('%Y-%m-%d'),
+      end_date=self.today.strftime('%Y-%m-%d'),
       metrics='ga:pageviews,ga:avgTimeOnPage,ga:exitRate',
       dimensions='ga:pagePath,ga:pageTitle',
       sort='-ga:pageviews',
@@ -184,11 +189,10 @@ class ExtractionService:
     service: The service object built by the Google API Python client library.
     table_id: str The table ID form which to retrieve data.
     """
-    startdate = date.today() - query_range
     return self.service.data().ga().get(
       ids=self.table_id,
-      start_date=startdate.strftime('%Y-%m-%d'),
-      end_date=date.today().strftime('%Y-%m-%d'),
+      start_date=self.startdate.strftime('%Y-%m-%d'),
+      end_date=self.today.strftime('%Y-%m-%d'),
       metrics='ga:searchUniques',
       dimensions='ga:searchKeyword,ga:exitPagePath,ga:searchStartPage',
       sort='-ga:searchUniques',

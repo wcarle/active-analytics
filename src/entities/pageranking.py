@@ -6,4 +6,4 @@ class PageRanking(ndb.Model):
   id = ndb.StringProperty(indexed=True)
   url = ndb.StringProperty(indexed=True)
   stats = ndb.StructuredProperty(PageHits)
-  date = ndb.DateTimeProperty(auto_now_add=True)
+  date = ndb.DateTimeProperty()
