@@ -28,3 +28,10 @@ class RankingHandler(BaseHandler):
       srankings.append(json.dumps(ranking.to_dict(), cls=DateEncoder))
     json_rankings = "[" + string.join(srankings,", ") + "]"
     self.response.write(self.json_response(json_rankings))
+
+class PopularHandler(BaseHandler):
+  def get(self):
+    url = self.request.get("url")
+    snap = self.extraction_service.get_popular_pages(url)
+    json_snapshot = json.dumps(snap.to_dict(), cls=DateEncoder)
+    self.response.write(self.json_response(json_snapshot))

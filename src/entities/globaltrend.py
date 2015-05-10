@@ -1,9 +1,8 @@
 from google.appengine.ext import ndb
 from src.entities.pagehits import PageHits
 
-class PageRanking(ndb.Model):
+class GlobalTrend(ndb.Model):
   """Models an individual PageSnapshot"""
   id = ndb.StringProperty(indexed=True)
-  url = ndb.StringProperty(indexed=True)
-  stats = ndb.StructuredProperty(PageHits)
+  popular = ndb.StructuredProperty(PageHits, repeated=True)
   date = ndb.DateTimeProperty(indexed=True)

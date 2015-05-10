@@ -1,6 +1,7 @@
 (function ( $ ) {
     // Pending requests hash
     var _pendingRequest = {};
+    var _ajaxCalls = 0;
 
     function Service(options){
         var _svc = this
@@ -12,14 +13,13 @@
 
         //Local storage cache for ajax requests
         var cachePrefix = "aa:cache:";
-        var cacheTime = 3600000 //60 minutes
 
         //Private Methods
         function cacheGet(key){
             var val = localStorage[cachePrefix + key];
             if(val !== undefined){
                 var cacheObj = JSON.parse(val);
-                if(cacheObj.timestamp + cacheTime > new Date().getTime()){
+                if(cacheObj.timestamp + options.cacheTime > new Date().getTime()){
                     return cacheObj.value;
                 }
                 else{
@@ -32,19 +32,27 @@
             localStorage[cachePrefix + key] = JSON.stringify({ timestamp: new Date().getTime(), value: value });
         }
         function query(endpoint, params, callback){
+            params.site = options.site;
             var cacheKey = endpoint + ":" + JSON.stringify(params);
             var cacheVal = cacheGet(cacheKey);
             if(_pendingRequest[cacheKey]){
                 _pendingRequest[cacheKey].push({callback: callback, context: _svc});
             }
-            else if(cacheVal === null){
+            else if(cacheVal === null || options.disableCache){
+                params.date = options.date.toISOString();
                 _pendingRequest[cacheKey] = [];
+                _ajaxCalls++;
+                $(options.loadingSelector).css("visibility", "visible");
                 $.ajax({
                     dataType: "jsonp",
                     url: options.serviceURL + "/" + endpoint,
                     data: params,
                     cache: true,
                     success: function(data, xhr){
+                        _ajaxCalls--;
+                        if(_ajaxCalls == 0){
+                            $(options.loadingSelector).css("visibility", "hidden");
+                        }
                         cacheSet(cacheKey, data);
                         callback(data);
                         $.each(_pendingRequest[cacheKey], function(i, cb){
@@ -111,6 +119,11 @@
                 callback(data);
             });
         };
+        this.getPopular = function(url, callback){
+            query("popular", {url: prepareURL(url)}, function(data){
+                callback(data);
+            });
+        };
         this.getRanking = function(urls, callback){
             urlquery = "";
             $.each(urls, function(i, url){
@@ -119,6 +132,33 @@
             query("ranking", {urls: urlquery}, function(data){
                 callback(data);
             });
+        }
+        this.popularLinks = function (element, global) {
+            var callback = function (items) {
+                $.each(items, function (i, item) {
+                    if(i > options.maxLinks){
+                        return;
+                    }
+                    $container = element;
+                    if(options.wrap){
+                        $container = options.wrap.clone();
+                        element.append($container);
+                    }
+                    $link = $("<a href='" + item.url + "'>" + item.title.replace(_svc.settings.titleReplaceRegex, "") + "</a>");
+                    $link.attr({'data-hits': item.hits, 'data-avg-time': item.avgTime, 'data-exit-rate': item.exitRate});
+                    $container.append($link);
+                })
+            }
+            if(global){
+                this.getPopular(window.location.pathname, function (data) {
+                    callback(data.popular);
+                });
+            }
+            else{
+                this.getSnapshot(window.location.pathname, function (data) {
+                    callback(data.nextPages);
+                });
+            }
         }
         this.searchSuggestions = function(element){
             var buildAutocomplete = function(data){
@@ -159,6 +199,13 @@
         this.hoverSuggestions = function(elements){
             var buildHoverSuggestions = function(){
                 elements = filterLinks(elements);
+                try{
+                    elements.tooltipster('destroy');
+                    elements.removeData();
+                }
+                catch(ex){
+                    //Tooltips not initialized yet
+                }
                 elements.tooltipster({
                     content: "Loading...",
                     interactive: true,
@@ -179,7 +226,7 @@
                                         j++;
                                     }
                                 }
-                                origin.tooltipster('content', $("<ul>" + links + "</ul>")).data('ajax', 'cached')
+                                origin.tooltipster('content', $("<b>Popular:</b><ul>" + links + "</ul>")).data('ajax', 'cached')
                             });
                         }
                     }
@@ -263,8 +310,14 @@
         var _settings = $.extend({
             indexPage: "default.aspx",
             serviceURL: "http://active-analytics.appspot.com",
-            titleReplaceRegex: /(UNF - |University of North Florida - )/g,
+            titleReplaceRegex: "",
             ignore: ["/default.aspx"],
+            apiDate: new Date(),
+            loadingSelector: ".aaLoading",
+            wrap: null,
+            maxLinks: 10,
+            site: null,
+            cacheTime: 3600000, //60 minutes
             rank: {
                 rangeStart: 11,
                 rangeEnd: 20,
@@ -293,6 +346,12 @@
             case "rankstyle":
                 _service.rankElements(this, true);
                 break;
+            case "popular":
+                _service.popularLinks(this, false);
+                break;
+            case "popular-global":
+                _service.popularLinks(this, true);
+                break;
         }
 
         return this;
@@ -302,35 +361,100 @@
 //Example implementation
 var host = "http://localhost:8082"
 $(document).ready(function(){
-    $("head").append("<link href='" + host + "/client/lib/tooltipster.css' rel='stylesheet' />")
+    $("head").append("<link href='" + host + "/client/lib/activeanalytics.css' rel='stylesheet' />");
     $.getScript( host + "/client/lib/jquery.tooltipster.min.js", function( data, textStatus, jqxhr ) {setTimeout(init, 1000)});
 });
+function updateData (date, disableCache) {
+    //Default settings
+    var apiDate = new Date(Date.parse(date + " " + new Date().toLocaleTimeString()));
+    var disableCache = disableCache === true ? true : false;
+    var settings = {
+        titleReplaceRegex: /(UNF - |University of North Florida - |UNF Mobile - - |- |UNF)/g,
+        serviceURL: host,
+        date: apiDate,
+        disableCache: disableCache,
+        site: "ga:991324"
+    };
 
-function init(){
-    $("#box").ActiveAnalytics("search", {serviceURL: host});
-    $("#simple a, .audience a").ActiveAnalytics("hover", {serviceURL: host});
+    //Populate search suggestions
+    $("#box").ActiveAnalytics("search", settings);
+
+    //Create hover suggestions
+    $("#simple a, .audience a").ActiveAnalytics("hover", settings);
+
+    //Rank links in homepage nav well
     $("#UNFbignav li a")
-        .ActiveAnalytics("rankstyle", {serviceURL: host, rank: {
-            rangeStart: "#EEEFF0",
-            rangeEnd: "#86C3FF",
-            rankBy: "hits",
-            style: "background-color",
-            distribution:"even"
-        }})
-        .ActiveAnalytics("rankstyle", {serviceURL: host, rank: {
-            rangeStart: 11,
-            rangeEnd: 13,
-            rankBy: "hits",
-            style: "font-size",
-            unit: "px"
-        }}).css({"color":"black"});
+        //Rank with color range
+        .ActiveAnalytics("rankstyle", $.extend({
+            rank: {
+                rangeStart: "#EEEFF0",
+                rangeEnd: "#86C3FF",
+                rankBy: "hits",
+                style: "background-color",
+                distribution:"even"
+            }
+        }, settings))
+        //Rank with font size
+        .ActiveAnalytics("rankstyle", $.extend({
+            rank: {
+                rangeStart: 11,
+                rangeEnd: 13,
+                rankBy: "hits",
+                style: "font-size",
+                unit: "px"
+            }
+        }, settings)).css({"color":"black"});
     $("#UNFbignav ul").css({"height": "auto"});
-    $("#leftCol table li a").ActiveAnalytics("rankstyle", {serviceURL: host, rank: {
-            rangeStart: "#FFFFFF",
-            rangeEnd: "#FFFF24",
-            rankBy: "hits",
-            style: "background-color",
-            distribution:"even"
-        }});
-}
 
+    //Rank links on audience page with color range
+    $("#leftCol table li a")
+        .ActiveAnalytics("rankstyle", $.extend({
+            rank: {
+                rangeStart: "#FFFFFF",
+                rangeEnd: "#FFFF24",
+                rankBy: "hits",
+                style: "background-color",
+                distribution:"even"
+            }
+        }, settings))
+        .ActiveAnalytics("rankstyle", $.extend({
+            rank: {
+                rangeStart: 12,
+                rangeEnd: 15,
+                rankBy: "hits",
+                style: "font-size",
+                unit: "px"
+            }
+        }, settings))
+        .ActiveAnalytics("rankstyle", $.extend({
+            rank: {
+                rangeStart: 15,
+                rangeEnd: 30,
+                rankBy: "hits",
+                style: "line-height",
+                unit: "px"
+            }
+        }, settings));
+
+    //Create popular links list
+    $("#news, #aaPopular").attr("id", "aaPopular").html("<h2><span class='title'>Popular Links</span></h2>");
+    $("#aaPopular").ActiveAnalytics("popular-global",$.extend({wrap: $("<h3>")}, settings));
+}
+function init(){
+    var $container = $("#UNFinfo");
+    if($container.length == 0){
+        $container = $("body");
+    }
+    $container.append('<div style="position: fixed;top: 0px;left: 0px;max-width: 500px;background: white;border: 1px solid black;box-shadow: rgba(0, 0, 0, 0.5) 5px 5px 15px 0px;border-radius: 5px;margin-top: 10px;margin-left: 10px;padding: 10px;z-index: 999999;"><h2><span class="title">Active Analytics</span></h2>Simulate Date:<div style="clear:both"><input type="text" placeholder="Date" id="txtDate"><input type="button" value="Set" id="btnDate"><img class="aaLoading" style="visibility: hidden;margin-top: -15px;" src="/image/loading.gif"></div></div>');
+    $("#txtDate").val(new Date().toLocaleDateString());
+    $(document).ajaxComplete(function(){
+        $(".aaLoading").css("visibility", "hidden");
+    });
+    $(document).ajaxStart(function(){
+        $(".aaLoading").css("visibility", "visible");
+    });
+    updateData($("#txtDate").val(), false);
+    $("#btnDate").click(function () {
+        updateData($("#txtDate").val(), true);
+    })
+}

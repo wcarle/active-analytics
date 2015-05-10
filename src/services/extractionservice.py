@@ -13,6 +13,7 @@ from src.entities.pagesnapshot import *
 from src.entities.pagehits import *
 from src.entities.search import *
 from src.entities.pageranking import *
+from src.entities.globaltrend import *
 
 
 logger = logging.getLogger(__name__)
@@ -61,43 +62,58 @@ class ExtractionService:
 
       snap = PageSnapshot(date=self.today, url=pageURL, nextPages=nextPageHits, prevPages=prevPageHits, destPages=destPageHits, searches=searchQueries)
       snap.put()
+      return snap
     else:
-      snap = dbSnapshot[0]
-    return snap
+      return dbSnapshot[0]
+
+  def get_popular_pages(self, url):
+    db_snapshot = GlobalTrend.query(
+      ndb.AND(GlobalTrend.date > self.expdate, GlobalTrend.date <= self.today)).fetch(1)
+    if disable_cache or len(db_snapshot) == 0:
+      rankings_query = self.run_query(self.build_global_query())
+      rankings = self.build_page_hit(url, rankings_query.get("rows"))
+      sorted_rankings = sorted(rankings, key=lambda x: x.hits, reverse=True)
+      global_trend = GlobalTrend(date=self.today, popular=sorted_rankings)
+      global_trend.put()
+      return global_trend
+    else:
+      return db_snapshot[0]
 
   def get_global_ranking(self, urls):
 
-    pageRankings = []
+    page_rankings = []
     if not disable_cache and len(urls) > 0:
-      dbRankings = PageRanking.query(ndb.AND(PageRanking.url.IN(urls), PageRanking.date > self.expdate, PageSnapshot.date <= self.today)).fetch()
-      for dbRanking in dbRankings:
-        if dbRanking.url in urls:
-          pageRankings.append(dbRanking)
-          urls.remove(dbRanking.url)
+      db_rankings = PageRanking.query(ndb.AND(PageRanking.url.IN(urls), PageRanking.date > self.expdate, PageSnapshot.date <= self.today)).fetch()
+      for db_ranking in db_rankings:
+        if db_ranking.url in urls:
+          page_rankings.append(db_ranking)
+          urls.remove(db_ranking.url)
 
     if len(urls) > 0:
-      rankingsQuery = self.run_query(self.build_page_query(urls))
-      rankings = self.build_page_hit("", rankingsQuery.get("rows"))
-      bulkInsert = []
+      rankings_query = self.run_query(self.build_page_query(urls))
+      rankings = self.build_page_hit("", rankings_query.get("rows"))
+      bulk_insert = []
       for ranking in rankings:
         #Dont save duplicate results
         if ranking.url in urls:
-          createRanking = PageRanking(date=self.today, url=ranking.url, stats=ranking)
-          bulkInsert.append(createRanking)
-          pageRankings.append(createRanking)
+          create_ranking = PageRanking(date=self.today, url=ranking.url, stats=ranking)
+          bulk_insert.append(create_ranking)
+          page_rankings.append(create_ranking)
           urls.remove(ranking.url)
 
-      if len(bulkInsert) > 0:
-        ndb.put_multi(bulkInsert)
+      if len(bulk_insert) > 0:
+        ndb.put_multi(bulk_insert)
 
-    return sorted(pageRankings, key=lambda x: x.stats.hits, reverse=True)
+    return sorted(page_rankings, key=lambda x: x.stats.hits, reverse=True)
 
   def build_page_hit(self, pageURL, rows):
     if rows is None:
       return[]
     PageHitsList = []
+    urls = []
     for page in rows:
-      if page[0] != pageURL:
+      if page[0] != pageURL and page[0] not in urls:
+        urls.append(page[0])
         PageHitsList.append(
           PageHits(
             url=page[0],
@@ -181,6 +197,17 @@ class ExtractionService:
       filters= filters,
       start_index='1',
       max_results=str(len(urls) * 2))
+
+  def build_global_query(self):
+    return self.service.data().ga().get(
+      ids=self.table_id,
+      start_date=self.startdate.strftime('%Y-%m-%d'),
+      end_date=self.today.strftime('%Y-%m-%d'),
+      metrics='ga:pageviews,ga:avgTimeOnPage,ga:exitRate',
+      dimensions='ga:pagePath,ga:pageTitle',
+      sort='-ga:pageviews',
+      start_index='1',
+      max_results='20')
 
   def build_search_query(self, url):
     """Returns a query object to retrieve data from the Core Reporting API.
