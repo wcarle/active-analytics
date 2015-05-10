@@ -2,7 +2,7 @@
 import string
 import json
 import webapp2
-from lib.dateutil import parser
+from dateutil import parser
 from datetime import datetime, timedelta
 from json import JSONEncoder
 from services.extractionservice import ExtractionService

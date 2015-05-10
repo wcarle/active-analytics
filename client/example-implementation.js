@@ -1,14 +1,10 @@
 //Example implementation
-var host = "http://localhost:8082"
-$(document).ready(function(){
-    //$("head").append("<link href='" + host + "/client/lib/activeanalytics.css' rel='stylesheet' />");
-    //$.getScript( host + "/client/lib/activeanalytics.js", function( data, textStatus, jqxhr ) {setTimeout(init, 1000)});
-});
 function grabScripts (argument) {
     var host = "http://active-analytics.appspot.com";
     if(window.location.host.indexOf("localhost") >= 0){
         host = "http://localhost:8082";
     }
+    window._AAHost = host;
     $("head").append("<link href='" + host + "/client/lib/activeanalytics.css' rel='stylesheet' />");
     $.getScript( host + "/client/lib/activeanalytics.js", function( data, textStatus, jqxhr ) {setTimeout(init, 1000)});
 }
@@ -18,7 +14,7 @@ function updateData (date, disableCache) {
     var disableCache = disableCache === true ? true : false;
     var settings = {
         titleReplaceRegex: /(UNF - |University of North Florida - |UNF Mobile - - |- |UNF)/g,
-        serviceURL: host,
+        serviceURL: _AAHost,
         date: apiDate,
         disableCache: disableCache,
         site: "ga:991324"

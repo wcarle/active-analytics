@@ -72,8 +72,14 @@
         }
         function prepareURL(url){
             url = url.replace(window.location.origin,"");
-            if(url.slice(-1) == "/"){
+            if(options.indexPage && url.slice(-1) == "/"){
                 url += options.indexPage;
+            }
+            return url;
+        }
+        function fixURL (url) {
+            if(options.indexPage && url.indexOf("/" + options.indexPage) > 0){
+                url = url.replace("/" + options.indexPage,"/");
             }
             return url;
         }
@@ -139,18 +145,20 @@
         }
         this.popularLinks = function (element, global) {
             var callback = function (items) {
+                var j = 0;
                 $.each(items, function (i, item) {
-                    if(i > options.maxLinks){
-                        return;
+                    var title = item.title.replace(_svc.settings.titleReplaceRegex, "");
+                    if(j < options.maxLinks && item.url != window.location.pathname && title !== ""){
+                        j++;
+                        $container = element;
+                        if(options.wrap){
+                            $container = options.wrap.clone();
+                            element.append($container);
+                        }
+                        $link = $("<a href='" + fixURL(item.url) + "'>" + title + "</a>");
+                        $link.attr({'data-hits': item.hits, 'data-avg-time': item.avgTime, 'data-exit-rate': item.exitRate});
+                        $container.append($link);
                     }
-                    $container = element;
-                    if(options.wrap){
-                        $container = options.wrap.clone();
-                        element.append($container);
-                    }
-                    $link = $("<a href='" + item.url + "'>" + item.title.replace(_svc.settings.titleReplaceRegex, "") + "</a>");
-                    $link.attr({'data-hits': item.hits, 'data-avg-time': item.avgTime, 'data-exit-rate': item.exitRate});
-                    $container.append($link);
                 })
             }
             if(global){
@@ -169,7 +177,7 @@
                 var suggestions = [];
                 console.log(data.searches);
                 $.each(data.searches, function(i, item){
-                    suggestions.push({href: item.destURL.replace(_svc.settings.indexPage, ""), value: item.keyword})
+                    suggestions.push({href: fixURL(item.destURL), value: item.keyword})
                 });
                 console.log(suggestions);
                 element.autocomplete("destroy");
@@ -226,7 +234,7 @@
                                 for(i = 0; j < 5 && i < pages.length; i++){
                                     if(!_svc.settings.ignoreHash[pages[i].url]){
                                         title = pages[i].title.replace(_svc.settings.titleReplaceRegex, "");
-                                        links += "<li><a style='color:white' href='" + pages[i].url + "'>" + title + "</a></li>";
+                                        links += "<li><a style='color:white' href='" + fixURL(pages[i].url) + "'>" + title + "</a></li>";
                                         j++;
                                     }
                                 }

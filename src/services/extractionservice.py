@@ -18,7 +18,7 @@ from src.entities.globaltrend import *
 
 logger = logging.getLogger(__name__)
 api_key = "AIzaSyCM91rdYyeFuJSS29H_zdQVUVXFc0SoBec"
-cache_time = timedelta(minutes=60)
+cache_time = timedelta(days=1)
 query_range = timedelta(days=14)
 disable_cache = False
 
@@ -71,7 +71,7 @@ class ExtractionService:
       ndb.AND(GlobalTrend.date > self.expdate, GlobalTrend.date <= self.today)).fetch(1)
     if disable_cache or len(db_snapshot) == 0:
       rankings_query = self.run_query(self.build_global_query())
-      rankings = self.build_page_hit(url, rankings_query.get("rows"))
+      rankings = self.build_page_hit("", rankings_query.get("rows"))
       sorted_rankings = sorted(rankings, key=lambda x: x.hits, reverse=True)
       global_trend = GlobalTrend(date=self.today, popular=sorted_rankings)
       global_trend.put()
@@ -126,6 +126,8 @@ class ExtractionService:
     return PageHitsList
 
   def build_searches(self, pageURL, rows):
+    if rows is None:
+      return[]
     keywords = []
     searchQueryList = []
     for query in rows:
