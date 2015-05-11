@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 api_key = "AIzaSyCM91rdYyeFuJSS29H_zdQVUVXFc0SoBec"
 cache_time = timedelta(days=1)
 query_range = timedelta(days=14)
+extended_query_range = timedelta(days=60) #Extended query range for search queries to get more results
 disable_cache = False
+maxRankingURLs = 20
 
 
 class ExtractionService:
@@ -32,6 +34,7 @@ class ExtractionService:
       self.today = datetime.today()
     logger.info("date:" + str(self.today))
     self.startdate = self.today - query_range
+    self.extended_startdate = self.today - extended_query_range;
     self.expdate = self.today - cache_time
 
     credentials = AppAssertionCredentials(scope='https://www.googleapis.com/auth/analytics.readonly')
@@ -80,7 +83,6 @@ class ExtractionService:
       return db_snapshot[0]
 
   def get_global_ranking(self, urls):
-
     page_rankings = []
     if not disable_cache and len(urls) > 0:
       db_rankings = PageRanking.query(ndb.AND(PageRanking.url.IN(urls), PageRanking.date > self.expdate, PageSnapshot.date <= self.today)).fetch()
@@ -90,6 +92,7 @@ class ExtractionService:
           urls.remove(db_ranking.url)
 
     if len(urls) > 0:
+      urls = urls[:maxRankingURLs]
       rankings_query = self.run_query(self.build_page_query(urls))
       rankings = self.build_page_hit("", rankings_query.get("rows"))
       bulk_insert = []
@@ -131,7 +134,7 @@ class ExtractionService:
     keywords = []
     searchQueryList = []
     for query in rows:
-      if query[0] not in keywords:
+      if query[0] not in keywords and int(query[3]) > 1:
         keywords.append(query[0])
         searchQueryList.append(
           Search(
@@ -220,7 +223,7 @@ class ExtractionService:
     """
     return self.service.data().ga().get(
       ids=self.table_id,
-      start_date=self.startdate.strftime('%Y-%m-%d'),
+      start_date=self.extended_startdate.strftime('%Y-%m-%d'),
       end_date=self.today.strftime('%Y-%m-%d'),
       metrics='ga:searchUniques',
       dimensions='ga:searchKeyword,ga:exitPagePath,ga:searchStartPage',

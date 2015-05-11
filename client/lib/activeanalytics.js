@@ -27,7 +27,7 @@
                     return cacheObj.value;
                 }
                 else{
-                    localStorage[cachePrefix + key] = undefined;
+                    delete localStorage[cachePrefix + key];
                 }
             }
             return null;
@@ -72,8 +72,14 @@
         }
         function prepareURL(url){
             url = url.replace(window.location.origin,"");
-            if(options.indexPage && url.slice(-1) == "/"){
+            if(!options.indexPage){
+                return url;
+            }
+            if(url.slice(-1) == "/"){
                 url += options.indexPage;
+            }
+            else if(url.match(/^\/[a-zA-Z]*$/g) != null){
+                url += "/" + options.indexPage;
             }
             return url;
         }
@@ -87,7 +93,7 @@
             return elements.filter("[href^='/'], [href^='" + window.location.origin + "/']");
         }
         function findLinks(elements, url){
-            return elements.filter("[href$='" + url + "'], [href$='" + url.replace(_svc.settings.indexPage, "") + "']");
+            return elements.filter("[href$='" + url + "'], [href$='" + url.replace(_svc.settings.indexPage, "") + "'], [href$='" + url.replace("/" + _svc.settings.indexPage, "") + "']");
         }
         function makeGradientColor(color1, color2, percent) {
             var newColor = {};
@@ -280,7 +286,7 @@
                     var rankValue = 0;
                     var rawRank = 0;
                     if(_svc.settings.rank.distribution == "even"){
-                        rawRank = _scaleFactors.max - i + 1;
+                        rawRank = _scaleFactors.max - i;
                         rankValue = scaleRank(rawRank);
                     }
                     else{
@@ -300,7 +306,7 @@
                 _svc.getRanking(urls, function(data){
                     var hits = data.map(function(page){ return page.stats.hits;});
                     if(_svc.settings.rank.distribution == "even"){
-                        _scaleFactors.min = 0;
+                        _scaleFactors.min = 1;
                         _scaleFactors.max = data.length;
                     }
                     else{

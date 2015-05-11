@@ -17,9 +17,14 @@ handlers:
 - url: /client
   static_dir: client
   expiration: "1d 0m"
+- url: /img
+  static_dir: img
+  expiration: "1d 0m"
 - url: /fonts
   static_dir: fonts
   expiration: "1d 0m"
+  http_headers:
+    Access-Control-Allow-Origin: '*'
 - url: .*
   script: main.app
 
