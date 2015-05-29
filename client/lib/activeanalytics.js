@@ -8,7 +8,7 @@
     var _ajaxCalls = 0;
 
     function Service(options){
-        var _svc = this
+        var _svc = this;
 
         //Public Properties
         _svc.settings = options;
@@ -54,7 +54,7 @@
                     cache: true,
                     success: function(data, xhr){
                         _ajaxCalls--;
-                        if(_ajaxCalls == 0){
+                        if(_ajaxCalls === 0){
                             $(options.loadingSelector).css("visibility", "hidden");
                         }
                         cacheSet(cacheKey, data);
@@ -64,7 +64,7 @@
                         });
                         _pendingRequest[cacheKey] = null;
                     }
-                })
+                });
             }
             else{
                 callback(cacheVal);
@@ -78,7 +78,7 @@
             if(url.slice(-1) == "/"){
                 url += options.indexPage;
             }
-            else if(url.match(/^\/[a-zA-Z]*$/g) != null){
+            else if(url.match(/^\/[a-zA-Z]*$/g) !== null){
                 url += "/" + options.indexPage;
             }
             return url;
@@ -148,7 +148,7 @@
             query("ranking", {urls: urlquery}, function(data){
                 callback(data);
             });
-        }
+        };
         this.popularLinks = function (element, global) {
             var callback = function (items) {
                 var j = 0;
@@ -165,8 +165,8 @@
                         $link.attr({'data-hits': item.hits, 'data-avg-time': item.avgTime, 'data-exit-rate': item.exitRate});
                         $container.append($link);
                     }
-                })
-            }
+                });
+            };
             if(global){
                 this.getPopular(window.location.pathname, function (data) {
                     callback(data.popular);
@@ -177,13 +177,13 @@
                     callback(data.nextPages);
                 });
             }
-        }
+        };
         this.searchSuggestions = function(element){
             var buildAutocomplete = function(data){
                 var suggestions = [];
                 console.log(data.searches);
                 $.each(data.searches, function(i, item){
-                    suggestions.push({href: fixURL(item.destURL), value: item.keyword})
+                    suggestions.push({href: fixURL(item.destURL), value: item.keyword});
                 });
                 console.log(suggestions);
                 element.autocomplete("destroy");
@@ -201,7 +201,7 @@
                         return false;
                     },
                     open: function(event, ui) {
-                        $(".ui-autocomplete").find("li:gt(15)").hide;
+                        $(".ui-autocomplete").find("li:gt(15)").hide();
                         $(".ui-autocomplete").prepend("<span style='font-weight:bold;'>Suggestions:</span>");
                         return false;
                     }
@@ -213,7 +213,7 @@
             this.getSnapshot(window.location.pathname, function(data){
                 buildAutocomplete(data);
             });
-        }
+        };
         this.hoverSuggestions = function(elements){
             var buildHoverSuggestions = function(){
                 elements = filterLinks(elements);
@@ -244,14 +244,14 @@
                                         j++;
                                     }
                                 }
-                                origin.tooltipster('content', $("<b>Popular:</b><ul>" + links + "</ul>")).data('ajax', 'cached')
+                                origin.tooltipster('content', $("<b>Popular:</b><ul>" + links + "</ul>")).data('ajax', 'cached');
                             });
                         }
                     }
                 });
-            }
+            };
             buildHoverSuggestions();
-        }
+        };
         this.rankElements = function(elements, applyStyle){
             var _scaleFactors = {
                 rangeS: _svc.settings.rank.rangeStart,
@@ -320,7 +320,7 @@
                 });
             }
 
-        }
+        };
     }
 
     //ActiveAnalytics jQuery Plugin
