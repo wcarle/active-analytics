@@ -51,13 +51,13 @@ class ExtractionService:
       nextPages = self.run_query(self.build_navigation_query(pageURL, "previousPagePath", "pagePath"))
       nextPageHits = self.build_page_hit(pageURL, nextPages.get("rows"))
 
-      #Previous Pages
-      prevPages = self.run_query(self.build_navigation_query(pageURL, "pagePath", "previousPagePath"))
-      prevPageHits = self.build_page_hit(pageURL, prevPages.get("rows"))
+      # #Previous Pages
+      # prevPages = self.run_query(self.build_navigation_query(pageURL, "pagePath", "previousPagePath"))
+      prevPageHits = [] #self.build_page_hit(pageURL, prevPages.get("rows"))
 
-      #Dest Pages
-      destPages = self.run_query(self.build_navigation_query(pageURL, "pagePath", "exitPagePath"))
-      destPageHits = self.build_page_hit(pageURL, destPages.get("rows"))
+      # #Dest Pages
+      # destPages = self.run_query(self.build_navigation_query(pageURL, "pagePath", "exitPagePath"))
+      destPageHits = [] #self.build_page_hit(pageURL, destPages.get("rows"))
 
       #Search Queries
       searchQueriesResults = self.run_query(self.build_search_query(pageURL))
@@ -94,18 +94,19 @@ class ExtractionService:
     if len(urls) > 0:
       urls = urls[:maxRankingURLs]
       rankings_query = self.run_query(self.build_page_query(urls))
-      rankings = self.build_page_hit("", rankings_query.get("rows"))
-      bulk_insert = []
-      for ranking in rankings:
-        #Dont save duplicate results
-        if ranking.url in urls:
-          create_ranking = PageRanking(date=self.today, url=ranking.url, stats=ranking)
-          bulk_insert.append(create_ranking)
-          page_rankings.append(create_ranking)
-          urls.remove(ranking.url)
+      if rankings_query is not None:
+        rankings = self.build_page_hit("", rankings_query.get("rows"))
+        bulk_insert = []
+        for ranking in rankings:
+          #Dont save duplicate results
+          if ranking.url in urls:
+            create_ranking = PageRanking(date=self.today, url=ranking.url, stats=ranking)
+            bulk_insert.append(create_ranking)
+            page_rankings.append(create_ranking)
+            urls.remove(ranking.url)
 
-      if len(bulk_insert) > 0:
-        ndb.put_multi(bulk_insert)
+        if len(bulk_insert) > 0:
+          ndb.put_multi(bulk_insert)
 
     return sorted(page_rankings, key=lambda x: x.stats.hits, reverse=True)
 

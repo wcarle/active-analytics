@@ -142,11 +142,28 @@
         };
         this.getRanking = function(urls, callback){
             urlquery = "";
+            var count = 0;
+            var max = 10;
+            var numCallbacks = Math.floor(urls.length / max);
+            var completeCallbacks = 0;
+            var result = [];
+
+            // Break requests into chunks, there is a max request size for JSONP requests
             $.each(urls, function(i, url){
-                urlquery += prepareURL(url) + (i == urls.length - 1 ? "": ",");
-            });
-            query("ranking", {urls: urlquery}, function(data){
-                callback(data);
+                urlquery += prepareURL(url) + ",";
+                if (++count === 10) {
+                    urlquery = urlquery.substring(0, urlquery.length - 1)
+                    query("ranking", {urls: urlquery}, function(data){
+                        result.push.apply(result, data);
+                        completeCallbacks++;
+                        if (numCallbacks === completeCallbacks) {
+                            result = result.sort(function(a,b){return b.stats.hits - a.stats.hits;});
+                            callback(result);
+                        }
+                    });
+                    urlquery = "";
+                    count = 0;
+                }
             });
         }
         this.popularLinks = function (element, global) {
@@ -181,11 +198,9 @@
         this.searchSuggestions = function(element){
             var buildAutocomplete = function(data){
                 var suggestions = [];
-                console.log(data.searches);
                 $.each(data.searches, function(i, item){
                     suggestions.push({href: fixURL(item.destURL), value: item.keyword})
                 });
-                console.log(suggestions);
                 element.autocomplete("destroy");
                 element.autocomplete({
                     minLength: 0,
@@ -281,7 +296,6 @@
                 });
             };
             var calculateRanking = function(ranking){
-                console.log(ranking);
                 $.each(ranking, function(i, rank){
                     var rankValue = 0;
                     var rawRank = 0;
@@ -302,7 +316,6 @@
                 elements.each(function(){
                     urls.push($(this).attr("href"));
                 });
-                console.log(urls);
                 _svc.getRanking(urls, function(data){
                     var hits = data.map(function(page){ return page.stats.hits;});
                     if(_svc.settings.rank.distribution == "even"){
