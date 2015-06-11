@@ -151,7 +151,7 @@
             // Break requests into chunks, there is a max request size for JSONP requests
             $.each(urls, function(i, url){
                 urlquery += prepareURL(url) + ",";
-                if (++count === 10) {
+                if (++count === max) {
                     urlquery = urlquery.substring(0, urlquery.length - 1)
                     query("ranking", {urls: urlquery}, function(data){
                         result.push.apply(result, data);
