@@ -6,13 +6,13 @@ function grabScripts (argument) {
     }
     window._AAHost = host;
     $("head").append("<link href='" + host + "/client/lib/activeanalytics.css' rel='stylesheet' />");
-    $.getScript( host + "/client/lib/activeanalytics.js", function( data, textStatus, jqxhr ) {setTimeout(init, 1000)});
+    $.getScript( host + "/client/lib/activeanalytics.js", function( data, textStatus, jqxhr ) {setTimeout(init, 1000);});
 }
 function updateData (date, disableCache) {
     console.log("lets go");
     //Default settings
     var apiDate = new Date(Date.parse(date + " " + new Date().toLocaleTimeString()));
-    var disableCache = disableCache === true ? true : false;
+    disableCache = disableCache === true ? true : false;
     var settings = {
         titleReplaceRegex: /(UNF - |University of North Florida - |UNF Mobile - - |- |UNF)/g,
         serviceURL: _AAHost,
@@ -120,10 +120,10 @@ function init(){
 }
 function createModal (content) {
     var $container = $("#UNFinfo");
-    if($container.length == 0){
+    if($container.length === 0){
         $container = $("body");
     }
-    if($("#aaMessage").length == 0){
+    if($("#aaMessage").length === 0){
         $container.append("<div id='aaMessage'></div>");
     }
     var $modal = $("#aaMessage");
@@ -156,7 +156,7 @@ function TaskService() {
     this.finish = function(){
         var html = "<h2><span class='title'>You're Done!</span></h2><p>Thanks for helping me out!</p>";
         createModal(html);
-    }
+    };
     this._guid = function() {
         function s4() {
             return Math.floor((1 + Math.random()) * 0x10000)
@@ -164,18 +164,18 @@ function TaskService() {
                 .substring(1);
         }
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-    }
+    };
     this.updateTask = function(currentTask){
         var html = "<h2><span class='title'>" + currentTask.title + "</span></h2><p>" + currentTask.desc + "</p>";
         createModal(html);
-    }
+    };
     this.clearData = function(){
         console.log("clearingdata");
         sessionStorage["aaTasksTracking"] = "";
-    }
+    };
     this.saveData = function () {
         sessionStorage["aaTasksTracking"] = JSON.stringify(this._data);
-    }
+    };
     this.getData = function(){
         var _data = sessionStorage["aaTasksTracking"];
         if(_data === undefined || _data === ""){
@@ -184,7 +184,7 @@ function TaskService() {
         else{
             this._data = JSON.parse(_data);
         }
-    }
+    };
 
     this.resume = function () {
         var currentTask = this.tasks[this._data.currentTask];
@@ -193,7 +193,7 @@ function TaskService() {
             var nextTask = this.tasks[this._data.currentTask + 1];
             console.log("next");
             console.log(nextTask);
-            if(nextTask == null){
+            if(nextTask === null){
                 this.finish();
                 finished = true;
             }
@@ -227,25 +227,25 @@ function TaskService() {
         else{
             this.saveData();
         }
-    }
+    };
     this.initialize = function () {
         this._data = {};
         this._data.id = this._guid();
         this._data.currentTask = 0;
         this._data.actions = [];
         var self = this;
-        var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for taking the time to test my framework. I will ask you to complete a few small tasks and measure your time to complete those tasks.</p><p>When you are ready please click begin</p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Begin</button>";;
+        var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for taking the time to test my framework. I will ask you to complete a few small tasks and measure your time to complete those tasks.</p><p>When you are ready please click begin</p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Begin</button>";
         $modal = createModal(html);
         $modal.find("#btnBegin").click(function(){
             self.resume();
         });
         this.saveData();
-    }
+    };
 
     this._data = null;
     this.getData();
     console.log(this._data);
-    if(this._data == null){
+    if(this._data === null){
         this.initialize();
     }
     else{
