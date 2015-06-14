@@ -25,6 +25,7 @@ class SubmitHandler(webapp2.RequestHandler):
     stat_obj = json.loads(stat)
     stat_service.save_user_session(stat_obj, stat)
     self.response.write('True')
+    self.response.headers["Access-Control-Allow-Origin"] = "*"
 
 # ErrorPage Handler: handle generic error
 class ErrorPage(webapp2.RequestHandler):

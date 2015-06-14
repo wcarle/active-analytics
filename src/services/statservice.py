@@ -21,7 +21,7 @@ class StatService:
       actions.append(UserAction(userid=user_id, url=action['url'], task=action['task'], taskid=action['taskId'], date=datetime.strptime(action['timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ")))
 
     for answer in val['answers']:
-      answers.append(UserAnswer(userid=user_id, question=action['question'], questionid=answer['questionId'], answer=answer['answer']))
+      answers.append(UserAnswer(userid=user_id, question=answer['question'], questionid=answer['questionId'], answer=answer['answer']))
 
     stat = UserStat(userid=user_id, date=datetime.today(), userAgent=val['userAgent'], userActions=actions, userAnswers=answers, raw=val_string)
     stat.put()

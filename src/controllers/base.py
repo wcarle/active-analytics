@@ -22,6 +22,7 @@ class BaseHandler(webapp2.RequestHandler):
     if dateParam != "":
       self.date = parser.parse(dateParam).replace(tzinfo=None)
     self.extraction_service = ExtractionService(self.siteId, self.date)
+    self.response.headers["Access-Control-Allow-Origin"] = "*"
 
   # Convert json string to jsonp response
   def json_response(self, json):

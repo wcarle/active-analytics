@@ -300,24 +300,29 @@ function TaskService() {
         else{
             this._data = JSON.parse(_data);
         }
+        return this._data;
     };
     this.survey = function(){
+        var service = this;
         $content = $("<div>");
-        $content.append("<h2><span class='title'>Final Survey</span></h2>");
+        $content.append("<h2><span class='title'>Final Survey</span></h2><p>Thank you for completing the tasks, please fill out this short survey about your experience.</p>");
         $.each(this.questions, function (i, question) {
-            $q = $("<div class='form-group'>");
+            $q = $("<div data-question-id='" + question.id + "' class='form-group'>");
             $q.append("<label class='question' for='q" + question.id + "'>" + question.question + "</label>");
             $a = $("<div class='answer'>");
             $q.append($a);
             if (question.answers === "text") {
+                $q.data("type", "text");
                 $a.append("<textarea class='form-control' name='q" + question.id + "' type='text'></textarea>");
             }
             else if (question.answers === "rate") {
+                $q.data("type", "rate");
                 for (n = 1; n <= 5; n++) {
                     $a.append("<label><input name='q" + question.id + "' type='radio'></input>" + n + "</label>");
                 }
             }
             else {
+                $q.data("type", "mult");
                 $.each(question.answers, function (j, answer) {
                     $a.append("<label><input name='q" + question.id + "' type='radio'></input>" + answer + "</label>");
                 });
@@ -325,11 +330,35 @@ function TaskService() {
             $content.append($q);
         });
         $content.append("<button class='btn btn-primary submit-btn'>Submit</button>");
+        $content.find(".submit-btn").click(function(){
+            var data = service.getData();
+            $content.find(".form-group").each(function(){
+                var answer = {};
+                if ($(this).find("textarea").length > 0) {
+                    answer.answer = $(this).find("textarea").val();
+                }
+                else {
+                    answer.answer = $(this).find("input:checked").parent().text();
+                }
+                answer.questionId = parseInt($(this).data("question-id"));
+                answer.question = $(this).find(".question").text();
+                data.answers.push(answer);
+            });
+            service.complete();
+        });
         createModal($content, true);
-    }
+    };
+    this.complete = function(){
+        console.log("Pushing Data:");
+        this.submitData();
+        console.log(this._data);
+        this.clearData();
+        this.finish();
+        setTimeout(function () {
+            window.location = "/";
+        }, 10000);
+    };
     this.resume = function () {
-        this.survey();
-        return;
         var currentTask = this.tasks[this._data.currentTask];
         var finished = false;
         if(currentTask.complete()){
@@ -359,13 +388,7 @@ function TaskService() {
         }
         this._data.actions.push({ task: currentTask.title, taskId: currentTask.id, url: window.location.pathname + window.location.search, timestamp: new Date().toISOString()});
         if(finished){
-            console.log("Pushing Data:");
-            this.submitData();
-            console.log(this._data);
-            this.clearData();
-            setTimeout(function () {
-                window.location = "/";
-            }, 10000);
+            this.survey();
         }
         else{
             this.saveData();
