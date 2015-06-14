@@ -118,7 +118,7 @@ function init(){
     }
 
 }
-function createModal (content) {
+function createModal (content, full) {
     var $container = $("#UNFinfo");
     if($container.length === 0){
         $container = $("body");
@@ -127,6 +127,9 @@ function createModal (content) {
         $container.append("<div id='aaMessage'></div>");
     }
     var $modal = $("#aaMessage");
+    if (full) {
+        $modal.addClass('full');
+    }
     console.log(content);
     $modal.html(content);
     return $modal;
@@ -135,6 +138,7 @@ function createModal (content) {
 function TaskService() {
     this.tasks = [
         {
+            id: 1,
             title: "Task #1 Library",
             complete: function(){
                 return window.location.pathname.replace(/\//g, "") === "library";
@@ -144,6 +148,7 @@ function TaskService() {
             date: null
         },
         {
+            id: 2,
             title: "Task #2 Current Students",
             complete: function(){
                 return window.location.pathname.replace(/\//g, "") === "current";
@@ -151,6 +156,108 @@ function TaskService() {
             start: "/",
             desc: "Navigate to the Current Students page.",
             date: null
+        }
+    ];
+    this.questions = [
+        {
+            id: 1,
+            question: "Please select your age",
+            answers: ["18-25","26-35","36-45","46-55","56-65","65+"]
+        },
+        {
+            id: 2,
+            question: "How experienced are you in using the internet?",
+            answers: ["Very Experienced","Some Experience","Limited Experience","No Experience"]
+        },
+        {
+            id: 3,
+            question: "Which browser did you use to view the site?",
+            answers: ["Internet Explorer","Google Chrome","Safari","Firefox"]
+        },
+        {
+            id: 4,
+            question: "Is English your primary language?",
+            answers: ["Yes","No"]
+        },
+        {
+            id: 5,
+            question: "Have you visited the UNF website before?",
+            answers: ["Yes","No"]
+        },
+        {
+            id: 6,
+            question: "If yes how often do you visit the UNF website?",
+            answers: ["A few times a year","A few times per month","Once a week","Multiple times a week", "Daily", "Multiple times a day"]
+        },
+        {
+            id: 7,
+            question: "Were you able to complete all the tasks?",
+            answers: ["Yes","No"]
+        },
+        {
+            id: 8,
+            question: "If not, why were you not able to complete the tasks?",
+            answers: "text"
+        },
+        {
+            id: 9,
+            question: "Did you get lost at any point while trying to complete a task?",
+            answers: ["Yes","No"]
+        },
+        {
+            id: 10,
+            question: "If yes please describe what happened",
+            answers: "text"
+        },
+        {
+            id: 11,
+            question: "Were you frustrated at any point when trying to complete a task?",
+            answers: ["Yes","No"]
+        },
+        {
+            id: 12,
+            question: "If yes please describe what caused the frustration",
+            answers: "text"
+        },
+        {
+            id: 13,
+            question: "The link I was looking for on the page was easy to find",
+            answers: "rate"
+        },
+        {
+            id: 14,
+            question: "The link I was looking for was close to the top of the page",
+            answers: "rate"
+        },
+        {
+            id: 15,
+            question: "The site was easy to use",
+            answers: "rate"
+        },
+        {
+            id: 16,
+            question: "It was easy to navigate to the requested destination",
+            answers: "rate"
+        },
+        {
+            id: 17,
+            question: "Important links were presented prominently",
+            answers: "rate"
+        },
+        {
+            id: 18,
+            question: "The site was too cluttered",
+            answers: "rate"
+        },
+        {
+            id: 19,
+            question: "Exploring the site was frustrating",
+            answers: "rate"
+        },
+        {
+            id: 20,
+            question: "It took too many clicks to find what I was looking for",
+            answers: "rate"
         }
     ];
     this.finish = function(){
@@ -164,6 +271,15 @@ function TaskService() {
                 .substring(1);
         }
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    };
+    this.submitData = function(){
+         $.ajax({
+            url: window._AAHost + '/submit',
+            method: 'POST',
+            data: {
+                stat: JSON.stringify(this._data)
+            }
+         });
     };
     this.updateTask = function(currentTask){
         var html = "<h2><span class='title'>" + currentTask.title + "</span></h2><p>" + currentTask.desc + "</p>";
@@ -185,15 +301,42 @@ function TaskService() {
             this._data = JSON.parse(_data);
         }
     };
-
+    this.survey = function(){
+        $content = $("<div>");
+        $content.append("<h2><span class='title'>Final Survey</span></h2>");
+        $.each(this.questions, function (i, question) {
+            $q = $("<div class='form-group'>");
+            $q.append("<label class='question' for='q" + question.id + "'>" + question.question + "</label>");
+            $a = $("<div class='answer'>");
+            $q.append($a);
+            if (question.answers === "text") {
+                $a.append("<textarea class='form-control' name='q" + question.id + "' type='text'></textarea>");
+            }
+            else if (question.answers === "rate") {
+                for (n = 1; n <= 5; n++) {
+                    $a.append("<label><input name='q" + question.id + "' type='radio'></input>" + n + "</label>");
+                }
+            }
+            else {
+                $.each(question.answers, function (j, answer) {
+                    $a.append("<label><input name='q" + question.id + "' type='radio'></input>" + answer + "</label>");
+                });
+            }
+            $content.append($q);
+        });
+        $content.append("<button class='btn btn-primary submit-btn'>Submit</button>");
+        createModal($content, true);
+    }
     this.resume = function () {
+        this.survey();
+        return;
         var currentTask = this.tasks[this._data.currentTask];
         var finished = false;
         if(currentTask.complete()){
             var nextTask = this.tasks[this._data.currentTask + 1];
             console.log("next");
             console.log(nextTask);
-            if(nextTask === null){
+            if(!nextTask){
                 this.finish();
                 finished = true;
             }
@@ -214,15 +357,15 @@ function TaskService() {
         if(this._data.actions === undefined){
             this._data.actions = [];
         }
-        this._data.actions.push({ task: currentTask.title, url: window.location.pathname + window.location.search, timestamp: new Date().toISOString()});
+        this._data.actions.push({ task: currentTask.title, taskId: currentTask.id, url: window.location.pathname + window.location.search, timestamp: new Date().toISOString()});
         if(finished){
-            //TODO save
             console.log("Pushing Data:");
+            this.submitData();
             console.log(this._data);
             this.clearData();
             setTimeout(function () {
                 window.location = "/";
-            }, 5000);
+            }, 10000);
         }
         else{
             this.saveData();
@@ -233,6 +376,8 @@ function TaskService() {
         this._data.id = this._guid();
         this._data.currentTask = 0;
         this._data.actions = [];
+        this._data.answers = [];
+        this._data.userAgent = navigator.userAgent;
         var self = this;
         var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for taking the time to test my framework. I will ask you to complete a few small tasks and measure your time to complete those tasks.</p><p>When you are ready please click begin</p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Begin</button>";
         $modal = createModal(html);

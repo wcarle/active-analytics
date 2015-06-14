@@ -1,5 +1,7 @@
 #Default Controller
+import json
 from src.services.extractionservice import ExtractionService
+from src.services.statservice import StatService
 from src.views.jinja import jinja_config
 import webapp2
 
@@ -15,6 +17,14 @@ class MainHandler(webapp2.RequestHandler):
     template = jinja_config.JINJA_ENVIRONMENT.get_template('index.html')
 
     self.response.write(template.render(template_values))
+
+class SubmitHandler(webapp2.RequestHandler):
+  def post(self):
+    stat_service = StatService()
+    stat = self.request.get('stat')
+    stat_obj = json.loads(stat)
+    stat_service.save_user_session(stat_obj, stat)
+    self.response.write('True')
 
 # ErrorPage Handler: handle generic error
 class ErrorPage(webapp2.RequestHandler):
