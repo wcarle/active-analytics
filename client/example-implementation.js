@@ -24,6 +24,12 @@ function updateData (date, disableCache) {
     //Populate search suggestions
     $("#box").ActiveAnalytics("search", settings);
 
+    //Disable search feature
+    $(document).submit(function() {
+        alert("The search feature has been disabled for this test. Please navigate using the search suggestions or links on the page.");
+        return false;
+    });
+
     //Create hover suggestions
     $("#simple a, .audience a").ActiveAnalytics("hover", settings);
 
