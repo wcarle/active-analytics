@@ -8,8 +8,19 @@ function grabScripts (argument) {
     $("head").append("<link href='" + host + "/client/lib/activeanalytics.css' rel='stylesheet' />");
     $.getScript( host + "/client/lib/activeanalytics.js", function( data, textStatus, jqxhr ) {setTimeout(init, 1000);});
 }
-function updateData (date, disableCache) {
+function updateData (date, disableCache, frameworkEnabled) {
     console.log("lets go");
+
+    //Disable search feature
+    $(document).submit(function() {
+        alert("The search feature has been disabled for this test. Please navigate using the search suggestions or links on the page.");
+        return false;
+    });
+
+    if (!frameworkEnabled) {
+        return;
+    }
+
     //Default settings
     var apiDate = new Date(Date.parse(date + " " + new Date().toLocaleTimeString()));
     disableCache = disableCache === true ? true : false;
@@ -25,11 +36,6 @@ function updateData (date, disableCache) {
     $("#box").ActiveAnalytics("search", settings);
     $("a").each(function(i){
         $(this).attr("data-page-id", "page-" + i);
-    });
-    //Disable search feature
-    $(document).submit(function() {
-        alert("The search feature has been disabled for this test. Please navigate using the search suggestions or links on the page.");
-        return false;
     });
 
     //Create hover suggestions
@@ -369,6 +375,7 @@ function TaskService() {
     this.resume = function () {
         var currentTask = this.tasks[this._data.currentTask];
         var finished = false;
+        var frameworkEnabled = this._data.frameworkEnabled;
         var svc = this;
         if(currentTask.complete()){
             var nextTask = this.tasks[this._data.currentTask + 1];
@@ -386,10 +393,10 @@ function TaskService() {
         else{
             this.updateTask(currentTask);
             if(currentTask.date === null){
-                updateData(new Date().toLocaleDateString(), false);
+                updateData(new Date().toLocaleDateString(), false, frameworkEnabled);
             }
             else{
-                updateData(currentTask.date, true);
+                updateData(currentTask.date, true, frameworkEnabled);
             }
         }
         if(this._data.actions === undefined){
@@ -428,6 +435,8 @@ function TaskService() {
     this.initialize = function () {
         this._data = {};
         this._data.id = this._guid();
+        this._data.frameworkEnabled = Math.floor((Math.random() * 2)) === 1;
+        this._data.frameworkEnabled = true; //Comment out to enable random starting state
         this._data.currentTask = 0;
         this._data.actions = [];
         this._data.answers = [];

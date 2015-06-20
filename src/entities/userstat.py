@@ -11,5 +11,6 @@ class UserStat(ndb.Model):
   userActions = ndb.StructuredProperty(UserAction, repeated=True)
   userAnswers = ndb.StructuredProperty(UserAnswer, repeated=True)
   userClicks  = ndb.StructuredProperty(UserClick, repeated=True)
+  frameworkEnabled = ndb.BooleanProperty()
   date = ndb.DateTimeProperty()
 
