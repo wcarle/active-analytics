@@ -178,7 +178,7 @@
                             $container = options.wrap.clone();
                             element.append($container);
                         }
-                        $link = $("<a href='" + fixURL(item.url) + "'>" + title + "</a>");
+                        $link = $("<a data-aa-id='popular-" + i + "' href='" + fixURL(item.url) + "'>" + title + "</a>");
                         $link.attr({'data-hits': item.hits, 'data-avg-time': item.avgTime, 'data-exit-rate': item.exitRate});
                         $container.append($link);
                     }
@@ -217,6 +217,9 @@
                     },
                     open: function(event, ui) {
                         $(".ui-autocomplete").find("li:gt(15)").hide();
+                        $(".ui-autocomplete").find("li a").each(function (i) {
+                            $(this).attr("data-aa-id", "search-" + i)
+                        })
                         $(".ui-autocomplete").prepend("<span style='font-weight:bold;'>Suggestions:</span>");
                         return false;
                     }
@@ -255,7 +258,7 @@
                                 for(i = 0; j < 5 && i < pages.length; i++){
                                     if(!_svc.settings.ignoreHash[pages[i].url]){
                                         title = pages[i].title.replace(_svc.settings.titleReplaceRegex, "");
-                                        links += "<li><a style='color:white' href='" + fixURL(pages[i].url) + "'>" + title + "</a></li>";
+                                        links += "<li><a data-aa-id='hover-" + i + "' style='color:white' href='" + fixURL(pages[i].url) + "'>" + title + "</a></li>";
                                         j++;
                                     }
                                 }
@@ -364,6 +367,14 @@
             return map;
         }, {});
         var _service = new Service(_settings);
+
+        $(this).each(function () {
+            var pid = $(this).attr("data-page-id");
+            if(pid) {
+                $(this).attr("data-aa-id", pid);
+            }
+        })
+
         switch(action){
             case "search":
                 _service.searchSuggestions(this);

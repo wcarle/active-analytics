@@ -23,7 +23,9 @@ function updateData (date, disableCache) {
 
     //Populate search suggestions
     $("#box").ActiveAnalytics("search", settings);
-
+    $("a").each(function(i){
+        $(this).attr("data-page-id", "page-" + i);
+    });
     //Disable search feature
     $(document).submit(function() {
         alert("The search feature has been disabled for this test. Please navigate using the search suggestions or links on the page.");
@@ -367,6 +369,7 @@ function TaskService() {
     this.resume = function () {
         var currentTask = this.tasks[this._data.currentTask];
         var finished = false;
+        var svc = this;
         if(currentTask.complete()){
             var nextTask = this.tasks[this._data.currentTask + 1];
             console.log("next");
@@ -399,6 +402,28 @@ function TaskService() {
         else{
             this.saveData();
         }
+        $(document).click(function(e){
+            try {
+                var d = svc.getData();
+                if(d.clicks === undefined) {
+                    d.clicks = [];
+                }
+                aaId = $(e.toElement).attr("data-aa-id");
+                href = $(e.toElement).attr("href");
+                if(!href) {
+                    return;
+                }
+                var clickData = { task: currentTask.title, taskId: currentTask.id, url: window.location.pathname + window.location.search, href: href, aaid: "none", timestamp: new Date().toISOString() };
+                if(aaId) {
+                    clickData.aaid = aaId;
+                }
+                d.clicks.push(clickData);
+                svc.saveData();
+            }
+            catch(e) {
+                console.log("error tracking click");
+            }
+        });
     };
     this.initialize = function () {
         this._data = {};
@@ -406,6 +431,7 @@ function TaskService() {
         this._data.currentTask = 0;
         this._data.actions = [];
         this._data.answers = [];
+        this._data.clicks  = [];
         this._data.userAgent = navigator.userAgent;
         var self = this;
         var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for taking the time to test my framework. I will ask you to complete a few small tasks and measure your time to complete those tasks.</p><p>When you are ready please click begin</p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Begin</button>";
