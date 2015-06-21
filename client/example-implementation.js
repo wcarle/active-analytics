@@ -384,6 +384,8 @@ function TaskService() {
                 for (n = 1; n <= 5; n++) {
                     $a.append("<label><input name='q" + question.id + "' type='radio'></input>" + n + "</label>");
                 }
+                $a.prepend("Disagree ");
+                $a.append(" Agree");
             }
             else {
                 $q.data("type", "mult");
@@ -392,6 +394,7 @@ function TaskService() {
                 });
             }
             $content.append($q);
+            $content.append("<hr/>");
         });
         $content.append("<button class='btn btn-primary submit-btn'>Submit</button>");
         $content.find(".submit-btn").click(function(){
