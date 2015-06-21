@@ -296,8 +296,8 @@ function TaskService() {
          });
     };
     this.updateTask = function(currentTask){
-        var html = "<h2><span class='title'>" + currentTask.title + "</span></h2><p>" + currentTask.desc + "</p>";
-        createModal(html);
+        var html = "<h2><span class='title'>" + currentTask.title + "</span></h2><p>" + currentTask.desc + "</p><br/><button type='button' id='btnSkip' class='btn btn-primary'>Skip</button>";
+        return createModal(html);
     };
     this.clearData = function(){
         console.log("clearingdata");
@@ -391,7 +391,25 @@ function TaskService() {
             this._data.currentTask = this._data.currentTask + 1;
         }
         else{
-            this.updateTask(currentTask);
+            var $modal = this.updateTask(currentTask);
+            var $skip = $modal.find("#btnSkip");
+            if ($skip.length > 0) {
+                $skip.click(function(){
+                    var clickData = { task: currentTask.title, taskId: currentTask.id, url: window.location.pathname + window.location.search, href: "#skip", aaid: "none", timestamp: new Date().toISOString() };
+                    var d = svc.getData();
+                    d.clicks.push(clickData);
+                    var nextTask = svc.tasks[svc._data.currentTask + 1];
+                    svc._data.currentTask = svc._data.currentTask + 1;
+                    svc.saveData();
+                    if(!nextTask){
+                        svc.finish();
+                        svc.survey();
+                    }
+                    else{
+                        window.location = "/";
+                    }
+                });
+            }
             if(currentTask.date === null){
                 updateData(new Date().toLocaleDateString(), false, frameworkEnabled);
             }
