@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% autoescape true %}
+<div class="row">
+    <div class="col-lg-12">
+        <header class="jumbotron" id="overview">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="pull-left">
+                        <h1>Results</h1>
+                        <p class="lead"></p>
+                    </div>
+                </div>
+            </div>
+
+        </header>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Framework Enabled</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                    <th>Clicks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in data %}
+                <tr>
+                    <td>{{ item.userid }}</td>
+                    <td>{{ item.frameworkEnabled }}</td>
+                    <td>{{ item.date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ item.userActions | length }}</td>
+                    <td>{{ item.userClicks | length }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endautoescape %}
+{% endblock %}
+

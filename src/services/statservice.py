@@ -30,3 +30,7 @@ class StatService:
 
     stat = UserStat(userid=user_id, frameworkEnabled=val['frameworkEnabled'], date=datetime.today(), userAgent=val['userAgent'], userActions=actions, userAnswers=answers, userClicks=clicks, raw=val_string)
     stat.put()
+
+  def get_all_stats(self):
+    db_stats = UserStat.query().order(-UserStat.date).fetch()
+    return db_stats
