@@ -153,22 +153,72 @@ function TaskService() {
     this.tasks = [
         {
             id: 1,
-            title: "Task #1 Library",
+            title: "Task #1 Library Hours",
             complete: function(){
-                return window.location.pathname.replace(/\//g, "") === "library";
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "libraryhours";
             },
             start: "/",
-            desc: "Navigate to the Library home page.",
+            desc: "Please navigate to the Library “Hours of Operation” page (the page with a full calendar on it)",
             date: null
         },
         {
             id: 2,
-            title: "Task #2 Current Students",
+            title: "Task #2 Printing and Copying",
             complete: function(){
-                return window.location.pathname.replace(/\//g, "") === "current";
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "libraryservicesstudentsprinting.aspx";
             },
             start: "/",
-            desc: "Navigate to the Current Students page.",
+            desc: "Navigate to the UNF library “Printing and Copying Information” page",
+            date: null
+        },
+        {
+            id: 3,
+            title: "Task #3 HR Benefits",
+            complete: function(){
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "hrbenefitsbenefits.aspx";
+            },
+            start: "/",
+            desc: "Navigate to the Human Resources “Benefits” page",
+            date: null
+        },
+        {
+            id: 4,
+            title: "Task #4 HR Employment",
+            complete: function(){
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "hremploymentemployment.aspx";
+            },
+            start: "/",
+            desc: "Navigate to the Human Resources “Employment” page",
+            date: null
+        },
+        {
+            id: 5,
+            title: "Task #5 Admissions Deadlines",
+            complete: function(){
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "admissionsapplyadmission_deadlines_form.aspx";
+            },
+            start: "/",
+            desc: "Navigate to the Undergraduate Admissions “Deadlines” page",
+            date: null
+        },
+        {
+            id: 6,
+            title: "Task #6 Graduate Programs",
+            complete: function(){
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "graduateschoolacademicsgraduate_programs.aspx";
+            },
+            start: "/",
+            desc: "Navigate to the Graduate School’s “Graduate Programs” page",
+            date: null
+        },
+        {
+            id: 7,
+            title: "Task #7 Tuition",
+            complete: function(){
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "tuition";
+            },
+            start: "/",
+            desc: "Navigate to the Controller’s office “Tuition and Fees” page",
             date: null
         }
     ];
@@ -461,7 +511,7 @@ function TaskService() {
         this._data.clicks  = [];
         this._data.userAgent = navigator.userAgent;
         var self = this;
-        var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for taking the time to test my framework. I will ask you to complete a few small tasks and measure your time to complete those tasks.</p><p>When you are ready please click begin</p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Begin</button>";
+        var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for participating in our study, we will ask you to complete some simple navigation tasks. We will display the name of a page and we ask that you navigate to this page using links on the page.  It may take several clicks before you reach the destination page.</p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Begin</button>";
         $modal = createModal(html);
         $modal.find("#btnBegin").click(function(){
             self.resume();
