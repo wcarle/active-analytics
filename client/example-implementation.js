@@ -25,7 +25,7 @@ function updateData (date, disableCache, frameworkEnabled) {
     var apiDate = new Date(Date.parse(date + " " + new Date().toLocaleTimeString()));
     disableCache = disableCache === true ? true : false;
     var settings = {
-        titleReplaceRegex: /(UNF - |University of North Florida - |UNF Mobile - - |- |UNF)/g,
+        titleReplaceRegex: /(University of North Florida|UNF - |University of North Florida - |UNF Mobile - - |- |UNF)/g,
         serviceURL: _AAHost,
         date: apiDate,
         disableCache: disableCache,
@@ -114,6 +114,37 @@ function updateData (date, disableCache, frameworkEnabled) {
     //Create popular links list
     $("#news, #aaPopular").attr("id", "aaPopular").html("<h2><span class='title'>Popular Links</span></h2>");
     $("#aaPopular").ActiveAnalytics("popular-global",$.extend({wrap: $("<h3>")}, settings));
+
+    //Library menu
+    $("#mainMenu .collapse a")
+        //Rank with color range
+        .ActiveAnalytics("rankstyle", $.extend({
+            rank: {
+                rangeStart: "#dedede",
+                rangeEnd: "#86C3FF",
+                rankBy: "hits",
+                style: "background-color"
+            }
+        }, settings))
+        //Rank with font size
+        .ActiveAnalytics("rankstyle", $.extend({
+            rank: {
+                rangeStart: 12,
+                rangeEnd: 14,
+                rankBy: "hits",
+                style: "font-size",
+                unit: "px"
+            }
+        }, settings)).css({"color":"black"});
+
+    var $libCont = $("#ctl00_MainContentRegion_DZMain_uxColumnDisplay_ctl00_uxControlColumn_ctl00_uxWidgetHost_uxUpdatePanel");
+    $libCont.html("<h3>Popular:</h3>");
+    settings.callback = function() {
+        $libCont.find("a").each(function(){
+            $(this).text($(this).text().replace("Thomas G. Carpenter Library", ""));
+        });
+    };
+    $libCont.ActiveAnalytics("popular",$.extend({wrap: $("<li style='font-weight: bold; padding-top:8px;'>")}, settings));
 }
 function init(){
     if(window.location.hash == "#admin"){

@@ -144,9 +144,12 @@
             urlquery = "";
             var count = 0;
             var max = 10;
+            var curr = urls.length;
             var numCallbacks = Math.floor(urls.length / max);
             var completeCallbacks = 0;
             var result = [];
+
+            max = curr < max ? curr : max;
 
             // Break requests into chunks, there is a max request size for JSONP requests
             $.each(urls, function(i, url){
@@ -156,7 +159,7 @@
                     query("ranking", {urls: urlquery}, function(data){
                         result.push.apply(result, data);
                         completeCallbacks++;
-                        if (numCallbacks === completeCallbacks) {
+                        if (completeCallbacks >= numCallbacks) {
                             result = result.sort(function(a,b){return b.stats.hits - a.stats.hits;});
                             callback(result);
                         }
@@ -183,6 +186,9 @@
                         $container.append($link);
                     }
                 });
+                if (options.callback) {
+                    options.callback();
+                }
             };
             if(global){
                 this.getPopular(window.location.pathname, function (data) {
@@ -359,7 +365,8 @@
                 style: "font-size",
                 unit: "px",
                 distribution: "even"
-            }
+            },
+            callback: null
         }, options);
         //Create a hash of the ignored pages for quick access
         _settings.ignoreHash = _settings.ignore.reduce(function(map, obj){
