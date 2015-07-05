@@ -11,6 +11,11 @@ function grabScripts (argument) {
 function updateData (date, disableCache, frameworkEnabled) {
     console.log("lets go");
 
+    //Disable external links
+    $("a[href^='http']").click(function(){
+        alert("This link will take you to an external site, it has been disabled for this test.");
+        return false;
+    });
     //Disable search feature
     $(document).submit(function() {
         alert("The search feature has been disabled for this test. Please navigate using the search suggestions or links on the page.");
@@ -95,19 +100,25 @@ function updateData (date, disableCache, frameworkEnabled) {
             }
         }, settings));
 
-
-    $(".UNFMenu a").each(function () {
-        $(this).before("<span title='Popularity' class='icon-size glyphicon glyphicon-triangle-right' href='" + $(this).attr("href") + "'></span>").parent("li").addClass("icon-menu");
-    });
-    $(".UNFMenu .icon-size")
+    $(".UNFMenu li a")
+        //Rank with color range
         .ActiveAnalytics("rankstyle", $.extend({
             rank: {
-                rangeStart: 8,
-                rangeEnd: 25,
+                rangeStart: "#D1E8FF",
+                rangeEnd: "#86C3FF",
+                rankBy: "hits",
+                style: "background-color"
+            }
+        }, settings))
+        //Rank with font size
+        .ActiveAnalytics("rankstyle", $.extend({
+            rank: {
+                rangeStart: 11,
+                rangeEnd: 13,
                 rankBy: "hits",
                 style: "font-size",
                 unit: "px",
-                distribution:"even"
+                distribution: "even"
             }
         }, settings));
 
@@ -189,7 +200,7 @@ function TaskService() {
                 return window.location.pathname.replace(/\//g, "").toLowerCase() === "libraryhours";
             },
             start: "/",
-            desc: "Please navigate to the Library “Hours of Operation” page (the page with a full calendar on it)",
+            desc: "A new student Alex, recently transferred from UCF and he is in your class. He wants to know hours when UNF Library will be open for this semester. Help Alex by navigating to UNF library page that displays its operation hours. Please navigate to the Library “Hours of Operation” page (the page with a full calendar on it)",
             date: null
         },
         {
@@ -199,7 +210,7 @@ function TaskService() {
                 return window.location.pathname.replace(/\//g, "").toLowerCase() === "libraryservicesstudentsprinting.aspx";
             },
             start: "/",
-            desc: "Navigate to the UNF library “Printing and Copying Information” page",
+            desc: "Alex wants has some questions on printing and copying at library. Help Alex by navigating to UNF library page that displays printing and copying information. Please navigate to the UNF library “Printing and Copying Information” page",
             date: null
         },
         {
@@ -209,7 +220,7 @@ function TaskService() {
                 return window.location.pathname.replace(/\//g, "").toLowerCase() === "hrbenefitsbenefits.aspx";
             },
             start: "/",
-            desc: "Navigate to the Human Resources “Benefits” page",
+            desc: "Alex is interested in working for UNF and has some questions on benefits offered to UNF employees. Help Alex by navigating to human resource page that displays benefits information. Please navigate to the Human Resources “Benefits” page",
             date: null
         },
         {
@@ -219,7 +230,7 @@ function TaskService() {
                 return window.location.pathname.replace(/\//g, "").toLowerCase() === "hremploymentemployment.aspx";
             },
             start: "/",
-            desc: "Navigate to the Human Resources “Employment” page",
+            desc: "Alex is interested in learning about employment opportunities at UNF. Help Alex by navigating to human resource page that displays employment information. Please navigate to the Human Resources “Employment” page. You begin to wonder if Alex has ever seen a computer before",
             date: null
         },
         {
@@ -229,7 +240,7 @@ function TaskService() {
                 return window.location.pathname.replace(/\//g, "").toLowerCase() === "admissionsapplyadmission_deadlines_form.aspx";
             },
             start: "/",
-            desc: "Navigate to the Undergraduate Admissions “Deadlines” page",
+            desc: "Alex mentions that his cousin Zack is also considering applying for UNF. Alex would like to know information regarding application deadlines. Help Alex by navigating to UNF admissions page that displays deadlines information. Hopefully he won't need help applying too. Please navigate to the UNF Admissions “Deadlines” page",
             date: null
         },
         {
@@ -239,7 +250,7 @@ function TaskService() {
                 return window.location.pathname.replace(/\//g, "").toLowerCase() === "graduateschoolacademicsgraduate_programs.aspx";
             },
             start: "/",
-            desc: "Navigate to the Graduate School’s “Graduate Programs” page",
+            desc: "Alex mentions that Zack would be interested in graduate programs. Alex wants to obtain information on available graduate programs at UNF. Help Alex by navigating to graduate school page that displays available graduate programs at UNF. Please navigate to the Graduate School’s “Graduate Programs” page",
             date: null
         },
         {
@@ -249,7 +260,7 @@ function TaskService() {
                 return window.location.pathname.replace(/\//g, "").toLowerCase() === "tuition";
             },
             start: "/",
-            desc: "Navigate to the Controller’s office “Tuition and Fees” page",
+            desc: "Alex would like to obtain information on tuition and fees for UNF students. Really Alex?... Help Alex by navigating to controller page that displays tuition and fees details. Please navigate to the “Tuition” page with the breakdown of tuition and fees for students.",
             date: null
         }
     ];
@@ -321,7 +332,7 @@ function TaskService() {
         },
         {
             id: 14,
-            question: "The link I was looking for was close to the top of the page",
+            question: "I didn't have to scroll too far to find the link I wanted",
             answers: "rate"
         },
         {
@@ -399,52 +410,56 @@ function TaskService() {
     };
     this.survey = function(){
         var service = this;
-        $content = $("<div>");
-        $content.append("<h2><span class='title'>Final Survey</span></h2><p>Thank you for completing the tasks, please fill out this short survey about your experience.</p>");
-        $.each(this.questions, function (i, question) {
-            $q = $("<div data-question-id='" + question.id + "' class='form-group'>");
-            $q.append("<label class='question' for='q" + question.id + "'>" + question.question + "</label>");
-            $a = $("<div class='answer'>");
-            $q.append($a);
-            if (question.answers === "text") {
-                $q.data("type", "text");
-                $a.append("<textarea class='form-control' name='q" + question.id + "' type='text'></textarea>");
-            }
-            else if (question.answers === "rate") {
-                $q.data("type", "rate");
-                for (n = 1; n <= 5; n++) {
-                    $a.append("<label><input name='q" + question.id + "' type='radio'></input>" + n + "</label>");
+        $preSurveyContent = $("<h2><span class='title'>Tasks Complete!</span></h2><p>Now that you have completed the tasks please fill out the following short survey on your experience, all questions are optional.</p><button class='btn btn-primary btnBeginSurvey'>Begin Survey</button>");
+        createModal($preSurveyContent);
+        $('.btnBeginSurvey').click(function(){
+            $content = $("<div>");
+            $content.append("<h2><span class='title'>Final Survey</span></h2><p>Thank you for completing the tasks, please fill out this short survey about your experience.</p>");
+            $.each(service.questions, function (i, question) {
+                $q = $("<div data-question-id='" + question.id + "' class='form-group'>");
+                $q.append("<label class='question' for='q" + question.id + "'>" + question.question + "</label>");
+                $a = $("<div class='answer'>");
+                $q.append($a);
+                if (question.answers === "text") {
+                    $q.data("type", "text");
+                    $a.append("<textarea class='form-control' name='q" + question.id + "' type='text'></textarea>");
                 }
-                $a.prepend("Disagree ");
-                $a.append(" Agree");
-            }
-            else {
-                $q.data("type", "mult");
-                $.each(question.answers, function (j, answer) {
-                    $a.append("<label><input name='q" + question.id + "' type='radio'></input>" + answer + "</label>");
-                });
-            }
-            $content.append($q);
-            $content.append("<hr/>");
-        });
-        $content.append("<button class='btn btn-primary submit-btn'>Submit</button>");
-        $content.find(".submit-btn").click(function(){
-            var data = service.getData();
-            $content.find(".form-group").each(function(){
-                var answer = {};
-                if ($(this).find("textarea").length > 0) {
-                    answer.answer = $(this).find("textarea").val();
+                else if (question.answers === "rate") {
+                    $q.data("type", "rate");
+                    for (n = 1; n <= 5; n++) {
+                        $a.append("<label><input name='q" + question.id + "' type='radio'></input>" + n + "</label>");
+                    }
+                    $a.prepend("Disagree ");
+                    $a.append(" Agree");
                 }
                 else {
-                    answer.answer = $(this).find("input:checked").parent().text();
+                    $q.data("type", "mult");
+                    $.each(question.answers, function (j, answer) {
+                        $a.append("<label><input name='q" + question.id + "' type='radio'></input>" + answer + "</label>");
+                    });
                 }
-                answer.questionId = parseInt($(this).data("question-id"));
-                answer.question = $(this).find(".question").text();
-                data.answers.push(answer);
+                $content.append($q);
+                $content.append("<hr/>");
             });
-            service.complete();
+            $content.append("<button class='btn btn-primary submit-btn'>Submit</button>");
+            $content.find(".submit-btn").click(function(){
+                var data = service.getData();
+                $content.find(".form-group").each(function(){
+                    var answer = {};
+                    if ($(this).find("textarea").length > 0) {
+                        answer.answer = $(this).find("textarea").val();
+                    }
+                    else {
+                        answer.answer = $(this).find("input:checked").parent().text();
+                    }
+                    answer.questionId = parseInt($(this).data("question-id"));
+                    answer.question = $(this).find(".question").text();
+                    data.answers.push(answer);
+                });
+                service.complete();
+            });
+            createModal($content, true);
         });
-        createModal($content, true);
     };
     this.complete = function(){
         console.log("Pushing Data:");
@@ -461,12 +476,15 @@ function TaskService() {
         var finished = false;
         var frameworkEnabled = this._data.frameworkEnabled;
         var svc = this;
+        if(currentTask === undefined) {
+            this.survey();
+            return;
+        }
         if(currentTask.complete()){
             var nextTask = this.tasks[this._data.currentTask + 1];
             console.log("next");
             console.log(nextTask);
             if(!nextTask){
-                this.finish();
                 finished = true;
             }
             else{
@@ -479,6 +497,10 @@ function TaskService() {
             var $skip = $modal.find("#btnSkip");
             if ($skip.length > 0) {
                 $skip.click(function(){
+                    var r = confirm("Are you sure you want to skip this task?");
+                    if (!r) {
+                        return false;
+                    }
                     var clickData = { task: currentTask.title, taskId: currentTask.id, url: window.location.pathname + window.location.search, href: "#skip", aaid: "none", timestamp: new Date().toISOString() };
                     var d = svc.getData();
                     d.clicks.push(clickData);
@@ -486,7 +508,6 @@ function TaskService() {
                     svc._data.currentTask = svc._data.currentTask + 1;
                     svc.saveData();
                     if(!nextTask){
-                        svc.finish();
                         svc.survey();
                     }
                     else{
@@ -545,7 +566,7 @@ function TaskService() {
         this._data.clicks  = [];
         this._data.userAgent = navigator.userAgent;
         var self = this;
-        var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for participating in our study, we will ask you to complete some simple navigation tasks. We will display the name of a page and we ask that you navigate to this page using links on the page.  It may take several clicks before you reach the destination page.</p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Begin</button>";
+        var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for participating in our study, we will ask you to complete some simple navigation tasks. We will display task scenario, the name of a page, and we ask that you navigate to this page using links on the page.  It may take several clicks before you reach the destination page. We have enabled search suggestions for the search box on each page (which you can use to navigate) but have disabled the search results page because we are trying to improve navigation not search results with our study.</p><p>Please review the following study consent document by clicking “Begin” below you acknowledge that you have given consent to be a subject of this research and you are at least 18 years of age. If you do not want to participate in this study you may close this browser window.</p><p><a target='_blank' href='" + window._AAHost + "/img/consent.pdf'>Consent Form (opens in a new tab/window)</a></p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Yes, I Want to Participate (Begin)</button>";
         $modal = createModal(html);
         $modal.find("#btnBegin").click(function(){
             self.resume();

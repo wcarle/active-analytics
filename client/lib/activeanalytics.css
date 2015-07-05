@@ -125,6 +125,19 @@
 	padding-left: 0px;
 	margin-top: 10px;
 }
+#nav .UNFMenu li {
+  background-color: #eeeff0;
+  border-bottom: #7D7D7D;
+}
+#nav .UNFMenu a {
+  color: black;
+}
+#nav .UNFMenu a:hover {
+  color: black;
+}
+.UNFMenu li li a.selected {
+  color: #000000 !important;
+}
 
 /***Required Plugin CSS***/
 
