@@ -271,6 +271,11 @@ function TaskService() {
             answers: ["18-25","26-35","36-45","46-55","56-65","65+"]
         },
         {
+            id: 21,
+            question: "What is your current class standing?",
+            answers: ["Non-matriculated","Freshman","Sophomore ","Junior", "Senior", "Graduate"]
+        },
+        {
             id: 2,
             question: "How experienced are you in using the internet?",
             answers: ["Very Experienced","Some Experience","Limited Experience","No Experience"]
