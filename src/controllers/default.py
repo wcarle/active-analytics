@@ -35,9 +35,20 @@ class SubmitHandler(webapp2.RequestHandler):
   def post(self):
     stat_service = StatService()
     stat = self.request.get('stat')
+    user = self.request.get('user')
+    user_obj = json.loads(user)
     stat_obj = json.loads(stat)
-    stat_service.save_user_session(stat_obj, stat)
+    stat_service.save_user_session(stat_obj, user_obj, stat)
     self.response.write('True')
+    self.response.headers["Access-Control-Allow-Origin"] = "*"
+
+class CheckHandler(webapp2.RequestHandler):
+  def post(self):
+    stat_service = StatService()
+    user = self.request.get('user')
+    user_obj = json.loads(user)
+    res = stat_service.check_user(user_obj['nnumber'])
+    self.response.write('true' if res else 'false')
     self.response.headers["Access-Control-Allow-Origin"] = "*"
 
 class DataHandler(webapp2.RequestHandler):

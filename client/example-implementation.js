@@ -388,7 +388,8 @@ function TaskService() {
             url: window._AAHost + '/submit',
             method: 'POST',
             data: {
-                stat: JSON.stringify(this._data)
+                stat: JSON.stringify(this._data),
+                user: window.sessionStorage['user']
             }
          });
     };
@@ -560,6 +561,51 @@ function TaskService() {
             }
         });
     };
+    this.consent = function() {
+        var self = this;
+        var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for participating in our study, we will ask you to complete some simple navigation tasks. We will display task scenario, the name of a page, and we ask that you navigate to this page using links on the page.  It may take several clicks before you reach the destination page. We have enabled search suggestions for the search box on each page (which you can use to navigate) but have disabled the search results page because we are trying to improve navigation not search results with our study.</p><p>Please review the following study consent document by clicking “Begin” below you acknowledge that you have given consent to be a subject of this research and you are at least 18 years of age. If you do not want to participate in this study you may close this browser window.</p><p><a target='_blank' href='" + window._AAHost + "/img/consent.pdf'>Consent Form (opens in a new tab/window)</a></p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Yes, I Want to Participate (Begin)</button>";
+        $modal = createModal(html);
+        $modal.find("#btnBegin").click(function(){
+            self.nameForm();
+        });
+        this.saveData();
+    };
+    this.nameForm = function() {
+        var self = this;
+        var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Please enter your name and N-Number.  This information will NOT be tied to your survey responses and is only used to ensure you are only completing the survey once.  This information will be destroyed as soon as the study is complete.</p><p><table><tr><td>First Name: </td><td><input id='txtFname' type='text'/></td></tr><tr><td>Last Name: </td><td><input id='txtLname' type='text'/></td></tr><tr><td>N Number: </td><td><input id='txtNnum' type='text'/></td></tr></table><br/><button type='button' id='btnBegin' class='btn btn-primary'>Begin</button></p>";
+        $modal = createModal(html);
+        $modal.find("#btnBegin").click(function(){
+            var usr = {first_name: $modal.find('#txtFname').val(), last_name: $modal.find('#txtLname').val(), nnumber: $modal.find('#txtNnum').val()};
+            if (usr.first_name == '' || usr.last_name == '' || usr.nnumber == '') {
+                alert('Please fill in your information');
+            }
+            else if(!(new RegExp(/^[n,N]\d{8}$/).test(usr.nnumber))) {
+                alert('Please enter a valid N Number');
+            }
+            else {
+                window.sessionStorage['user'] = JSON.stringify(usr);
+                $.ajax({
+                    url: window._AAHost + '/check',
+                    method: 'POST',
+                    data: {
+                        user: window.sessionStorage['user']
+                    },
+                    success: function (data) {
+                        if (data == 'true') {
+                            self.resume();
+                        }
+                        else {
+                            alert('It looks like you\'ve already completed this study');
+                        }
+                    },
+                    error: function (){
+                        alert('There was an error please contact n00431448@ospreys.unf.edu');
+                    }
+                });
+            }
+        });
+        this.saveData();
+    };
     this.initialize = function () {
         this._data = {};
         this._data.id = this._guid();
@@ -570,19 +616,14 @@ function TaskService() {
         this._data.answers = [];
         this._data.clicks  = [];
         this._data.userAgent = navigator.userAgent;
-        var self = this;
-        var html = "<h2><span class='title'>Active Analytics Testing</span></h2><p>Thank you for participating in our study, we will ask you to complete some simple navigation tasks. We will display task scenario, the name of a page, and we ask that you navigate to this page using links on the page.  It may take several clicks before you reach the destination page. We have enabled search suggestions for the search box on each page (which you can use to navigate) but have disabled the search results page because we are trying to improve navigation not search results with our study.</p><p>Please review the following study consent document by clicking “Begin” below you acknowledge that you have given consent to be a subject of this research and you are at least 18 years of age. If you do not want to participate in this study you may close this browser window.</p><p><a target='_blank' href='" + window._AAHost + "/img/consent.pdf'>Consent Form (opens in a new tab/window)</a></p><br/><button type='button' id='btnBegin' class='btn btn-primary'>Yes, I Want to Participate (Begin)</button>";
-        $modal = createModal(html);
-        $modal.find("#btnBegin").click(function(){
-            self.resume();
-        });
+        this.consent();
         this.saveData();
     };
 
     this._data = null;
     this.getData();
     console.log(this._data);
-    if(this._data === null){
+    if(this._data === null || window.sessionStorage['user'] == undefined){
         this.initialize();
     }
     else{

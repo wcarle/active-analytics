@@ -9,12 +9,13 @@ from src.entities.useraction import *
 from src.entities.userstat import *
 from src.entities.useranswer import *
 from src.entities.userclick import *
+from src.entities.userlog import *
 
 
 logger = logging.getLogger(__name__)
 
 class StatService:
-  def save_user_session(self, val, val_string):
+  def save_user_session(self, val, user, val_string):
     user_id = str(uuid.uuid4())
     actions = []
     answers = []
@@ -31,6 +32,14 @@ class StatService:
     stat = UserStat(userid=user_id, frameworkEnabled=val['frameworkEnabled'], date=datetime.today(), userAgent=val['userAgent'], userActions=actions, userAnswers=answers, userClicks=clicks, raw=val_string)
     stat.put()
 
+    usr = UserLog(first_name=user['first_name'], last_name=user['last_name'], nnumber=user['nnumber'], date=datetime.today())
+    usr.put()
+
   def get_all_stats(self):
     db_stats = UserStat.query().order(-UserStat.date).fetch()
     return db_stats
+
+  def check_user(self, nnumber):
+    n = nnumber.lower();
+    res = len(UserLog.query(UserLog.nnumber==n).fetch(1)) == 0
+    return res
