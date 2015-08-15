@@ -197,7 +197,7 @@ function TaskService() {
             id: 1,
             title: "Task #1 Library Hours",
             complete: function(){
-                return window.location.pathname.replace(/\//g, "").toLowerCase() === "libraryhours";
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "libraryhours" || document.title === "UNF - Thomas G. Carpenter Library - Hours";
             },
             start: "/",
             desc: "A new student Alex, recently transferred from UCF and he is in your class. He wants to know hours when UNF Library will be open for this semester. Help Alex by navigating to UNF library page that displays its operation hours. Please navigate to the Library “Hours of Operation” page (the page with a full calendar on it)",
@@ -207,7 +207,7 @@ function TaskService() {
             id: 2,
             title: "Task #2 Printing and Copying",
             complete: function(){
-                return window.location.pathname.replace(/\//g, "").toLowerCase() === "libraryservicesstudentsprinting.aspx";
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "libraryservicesstudentsprinting.aspx" || document.title === "UNF - Thomas G. Carpenter Library - printing";
             },
             start: "/",
             desc: "Alex wants has some questions on printing and copying at library. Help Alex by navigating to UNF library page that displays printing and copying information. Please navigate to the UNF library “Printing and Copying Information” page",
@@ -217,7 +217,7 @@ function TaskService() {
             id: 3,
             title: "Task #3 HR Benefits",
             complete: function(){
-                return window.location.pathname.replace(/\//g, "").toLowerCase() === "hrbenefitsbenefits.aspx";
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "hrbenefitsbenefits.aspx" || document.title === "UNF - Human Resources - Benefits";
             },
             start: "/",
             desc: "Alex is interested in working for UNF and has some questions on benefits offered to UNF employees. Help Alex by navigating to human resource page that displays benefits information. Please navigate to the Human Resources “Benefits” page",
@@ -227,7 +227,7 @@ function TaskService() {
             id: 4,
             title: "Task #4 HR Employment",
             complete: function(){
-                return window.location.pathname.replace(/\//g, "").toLowerCase() === "hremploymentemployment.aspx";
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "hremploymentemployment.aspx" || document.title === "UNF - Human Resources - Employment";
             },
             start: "/",
             desc: "Alex is interested in learning about employment opportunities at UNF. Help Alex by navigating to human resource page that displays employment information. Please navigate to the Human Resources “Employment” page. You begin to wonder if Alex has ever seen a computer before",
@@ -237,7 +237,7 @@ function TaskService() {
             id: 5,
             title: "Task #5 Admissions Deadlines",
             complete: function(){
-                return window.location.pathname.replace(/\//g, "").toLowerCase() === "admissionsapplyadmission_deadlines_form.aspx";
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "admissionsapplyadmission_deadlines_form.aspx" || document.title === "UNF - Admissions - Admission Deadlines Form";
             },
             start: "/",
             desc: "Alex mentions that his cousin Zack is also considering applying for UNF. Alex would like to know information regarding application deadlines. Help Alex by navigating to UNF admissions page that displays deadlines information. Hopefully he won't need help applying too. Please navigate to the UNF Admissions “Deadlines” page",
@@ -245,9 +245,9 @@ function TaskService() {
         },
         {
             id: 6,
-            title: "Task #6 Graduate Programs",
+            title: "Task #6 Graduate Programs of Study",
             complete: function(){
-                return window.location.pathname.replace(/\//g, "").toLowerCase() === "graduateschoolacademicsgraduate_programs.aspx";
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "graduateschoolacademicsgraduate_programs.aspx" || document.title === "UNF - The Graduate School - Graduate Programs";
             },
             start: "/",
             desc: "Alex mentions that Zack would be interested in graduate programs. Alex wants to obtain information on available graduate programs at UNF. Help Alex by navigating to graduate school page that displays available graduate programs at UNF. Please navigate to the Graduate School’s “Graduate Programs” page",
@@ -257,7 +257,7 @@ function TaskService() {
             id: 7,
             title: "Task #7 Tuition",
             complete: function(){
-                return window.location.pathname.replace(/\//g, "").toLowerCase() === "tuition";
+                return window.location.pathname.replace(/\//g, "").toLowerCase() === "tuition" || document.title === "UNF - Controller - Tuition and Fees";
             },
             start: "/",
             desc: "Alex would like to obtain information on tuition and fees for UNF students. Really Alex?... Help Alex by navigating to controller page that displays tuition and fees details. Please navigate to the “Tuition” page with the breakdown of tuition and fees for students.",
@@ -372,7 +372,7 @@ function TaskService() {
         }
     ];
     this.finish = function(){
-        var html = "<h2><span class='title'>You're Done!</span></h2><p>Thanks for helping me out!</p>";
+        var html = "<h2><span class='title'>You're Done!</span></h2><p>Thanks for helping me out!</p><p><a href='/' class='btn btn-primary'>Close</a></p>";
         createModal(html);
     };
     this._guid = function() {
@@ -510,6 +510,7 @@ function TaskService() {
                     var clickData = { task: currentTask.title, taskId: currentTask.id, url: window.location.pathname + window.location.search, href: "#skip", aaid: "none", timestamp: new Date().toISOString() };
                     var d = svc.getData();
                     d.clicks.push(clickData);
+                    d.actions.push({ task: currentTask.title, taskId: currentTask.id, url: window.location.pathname + window.location.search + "#skip", timestamp: new Date().toISOString()});
                     var nextTask = svc.tasks[svc._data.currentTask + 1];
                     svc._data.currentTask = svc._data.currentTask + 1;
                     svc.saveData();
@@ -535,9 +536,8 @@ function TaskService() {
         if(finished){
             this.survey();
         }
-        else{
-            this.saveData();
-        }
+        this.saveData();
+
         $(document).click(function(e){
             try {
                 var d = svc.getData();
@@ -607,6 +607,12 @@ function TaskService() {
         this.saveData();
     };
     this.initialize = function () {
+        var check = false;
+        (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true})(navigator.userAgent||navigator.vendor||window.opera);
+        if (check) {
+            alert("Sorry this test will not work with mobile devices, please use a desktop browser.");
+            return;
+        }
         this._data = {};
         this._data.id = this._guid();
         this._data.frameworkEnabled = Math.floor((Math.random() * 2)) === 1;
