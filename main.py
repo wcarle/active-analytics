@@ -1,6 +1,7 @@
 #Active Analytics
 from controllers.default import MainHandler
 from controllers.default import SubmitHandler
+from controllers.default import CheckHandler
 from controllers.default import DataHandler
 from controllers.default import StatsHandler
 from controllers.api import SnapshotHandler
@@ -11,6 +12,7 @@ import webapp2
 app = webapp2.WSGIApplication([
   ('/', MainHandler),
   ('/submit', SubmitHandler),
+  ('/check', CheckHandler),
   ('/stats', DataHandler),
   ('/report', StatsHandler),
   ('/snapshot*', SnapshotHandler),

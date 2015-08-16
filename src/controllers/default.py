@@ -26,8 +26,14 @@ class StatsHandler(webapp2.RequestHandler):
     stat_service = StatService()
     all_stats = stat_service.get_all_stats()
     template = jinja_config.JINJA_ENVIRONMENT.get_template('stats.html')
+    sdata = []
+    for stat in all_stats:
+      sdata.append(json.dumps(stat.to_dict(), cls=DateEncoder))
+
+    json_stats = "[" + string.join(sdata,", ") + "]"
     template_values = {
-      'data': all_stats
+      'data': all_stats,
+      'json': json_stats
     }
     self.response.write(template.render(template_values))
 
@@ -35,9 +41,20 @@ class SubmitHandler(webapp2.RequestHandler):
   def post(self):
     stat_service = StatService()
     stat = self.request.get('stat')
+    user = self.request.get('user')
+    user_obj = json.loads(user)
     stat_obj = json.loads(stat)
-    stat_service.save_user_session(stat_obj, stat)
+    stat_service.save_user_session(stat_obj, user_obj, stat)
     self.response.write('True')
+    self.response.headers["Access-Control-Allow-Origin"] = "*"
+
+class CheckHandler(webapp2.RequestHandler):
+  def post(self):
+    stat_service = StatService()
+    user = self.request.get('user')
+    user_obj = json.loads(user)
+    res = stat_service.check_user(user_obj['nnumber'])
+    self.response.write('true' if res else 'false')
     self.response.headers["Access-Control-Allow-Origin"] = "*"
 
 class DataHandler(webapp2.RequestHandler):
