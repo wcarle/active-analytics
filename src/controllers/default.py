@@ -26,8 +26,14 @@ class StatsHandler(webapp2.RequestHandler):
     stat_service = StatService()
     all_stats = stat_service.get_all_stats()
     template = jinja_config.JINJA_ENVIRONMENT.get_template('stats.html')
+    sdata = []
+    for stat in all_stats:
+      sdata.append(json.dumps(stat.to_dict(), cls=DateEncoder))
+
+    json_stats = "[" + string.join(sdata,", ") + "]"
     template_values = {
-      'data': all_stats
+      'data': all_stats,
+      'json': json_stats
     }
     self.response.write(template.render(template_values))
 

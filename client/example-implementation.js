@@ -616,7 +616,9 @@ function TaskService() {
         this._data = {};
         this._data.id = this._guid();
         this._data.frameworkEnabled = Math.floor((Math.random() * 2)) === 1;
-        this._data.frameworkEnabled = true; //Comment out to enable random starting state
+        if (location.hash === "#on" || location.hash === "#off") {
+            this._data.frameworkEnabled = location.hash === "#on";
+        }
         this._data.currentTask = 0;
         this._data.actions = [];
         this._data.answers = [];

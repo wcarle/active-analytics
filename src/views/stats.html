@@ -3,6 +3,193 @@
 {% block content %}
 
 {% autoescape true %}
+<script type="text/javascript">
+{% autoescape off %}
+    var data = {{ json }};
+{% endautoescape %}
+</script>
+<script type="text/javascript">
+    var stats = {};
+    google.load("visualization", "1.1", {packages:["corechart", "bar"]});
+    google.setOnLoadCallback(init);
+
+    function init() {
+        var fEnabled = [];
+        var fDisabled = [];
+        $.each(data, function(i, item){
+            if(item.frameworkEnabled) {
+                fEnabled.push(item);
+            }
+            else {
+                fDisabled.push(item);
+            }
+        });
+        stats.enabled = computeStats(fEnabled);
+        stats.disabled = computeStats(fDisabled);
+        drawBarChart(stats, 'Navigation Times', 'chart_times', 'avgTime');
+        drawBarChart(stats, 'Task Jumps', 'chart_jumps', 'skips');
+        drawBarChart(stats, 'Task Skips', 'chart_skips', 'avgJumps');
+        drawLinkChart(stats);
+    }
+    function drawBarChart (stat, title, id, prop) {
+        chartData = [];
+        chartData.push(['Task', 'Enabled', 'Disabled']);
+        for(var i = 0; i < 7; i++) {
+            var d = [];
+            d[0] = 'Task #' + (i + 1);
+            if (stat.enabled.tasks[i]) {
+                d[1] = stat.enabled.tasks[i][prop];
+            }
+            else {
+                d[1] = 0;
+            }
+            if (stat.disabled.tasks[i]) {
+                d[2] = stat.disabled.tasks[i][prop];
+            }
+            else {
+                d[2] = 0;
+            }
+            chartData.push(d);
+        }
+        var data = google.visualization.arrayToDataTable(chartData);
+
+        var options = {
+          chart: {
+            title: title,
+            subtitle: 'Framework vs No Framework',
+          }
+        };
+
+        var chart = new google.charts.Bar(document.getElementById(id));
+
+        chart.draw(data, options);
+    }
+
+    function drawLinkChart (stat) {
+        chartData = [];
+        chartData.push(['Task', 'Modified', 'Not Modified']);
+        for(var i = 0; i < 7; i++) {
+            var d = [];
+            d[0] = 'Task #' + (i + 1);
+            if (stat.enabled.tasks[i]) {
+                d[1] = stat.enabled.tasks[i].clickAA;
+            }
+            else {
+                d[1] = 0;
+            }
+            if (stat.enabled.tasks[i]) {
+                d[2] = stat.enabled.tasks[i].clickStd;
+            }
+            else {
+                d[2] = 0;
+            }
+            chartData.push(d);
+        }
+        var data = google.visualization.arrayToDataTable(chartData);
+
+        var options = {
+          chart: {
+            title: 'Links Clicked On',
+            subtitle: 'Modified vs Not Modified',
+          }
+        };
+
+        var chart = new google.charts.Bar(document.getElementById('chart_links'));
+
+        chart.draw(data, options);
+    }
+    function computeStats(d) {
+        var stat = {};
+        stat.users = [];
+        stat.tasks = [];
+        $.each(d, function (i, usr) {
+            var s = {};
+            s.date = new Date(usr.date);
+            s.frameworkEnabled = usr.frameworkEnabled;
+            s.user = usr.userid;
+            s.userAgent = usr.userAgent;
+            s.tasks = [];
+
+            //Calculate actions
+            $.each(usr.userActions, function(j, action) {
+                var tid = action.taskid - 1;
+                var d = new Date(action.date);
+                t = s.tasks[tid];
+                if (!t) {
+                    s.tasks[tid] = {start: d, end: d, jumps: 0, actions: [], skipped: false, times: [], totalTime: 0, avgTime: 0};
+                    t = s.tasks[tid];
+                    if (!stat.tasks[tid]) {
+                        stat.tasks[tid] = {taskid: tid + 1, utasks: []};
+                    }
+                    stat.tasks[tid].utasks.push(t);
+                }
+                else {
+                    if (t.end) {
+                        actionTime = (d.getTime() - t.end.getTime()) / 100;
+                        t.times.push(actionTime);
+                        t.totalTime += actionTime;
+                        t.avgTime = t.totalTime / t.times.length;
+                    }
+                    t.end = d;
+                    t.jumps++;
+                }
+
+                //Compute things
+                if (action.url.indexOf("#skip") > 0) {
+                    t.skipped = true;
+                }
+                t.actions.push(action);
+            });
+
+            //Calculate clicks
+            $.each(usr.userClicks, function(j, click){
+                var tid = click.taskid - 1;
+                if (s.tasks[tid].clickAA === undefined) {
+                    s.tasks[tid].clickAA = 0;
+                    s.tasks[tid].clickStd = 0;
+                }
+                if (click.aaid === "none") {
+                    s.tasks[tid].clickStd++;
+                }
+                else {
+                    s.tasks[tid].clickAA++;
+                }
+            });
+
+            //Finished
+            stat.users.push(s);
+        });
+
+        $.each(stat.tasks, function(i, task){
+            task.times = [];
+            task.totalTime = 0;
+            task.avgTime = 0;
+            task.skips = 0;
+            task.clickAA = 0;
+            task.clickStd = 0;
+            task.jumps = [];
+            task.totalJumps = 0;
+            $.each(task.utasks, function(j, utask){
+                if (!utask.skipped) {
+                    task.times.push(utask.totalTime);
+                    task.jumps.push(utask.jumps);
+                    task.totalJumps += utask.jumps;
+                    task.clickAA += utask.clickAA;
+                    task.clickStd += utask.clickStd;
+                }
+                else {
+                    task.skips++;
+                }
+            });
+            $.each(task.times, function(j, time){
+                task.totalTime += time;
+            });
+            task.avgJumps = task.totalJumps / task.jumps.length;
+            task.avgTime = task.totalTime / task.times.length;
+        });
+        return stat;
+    }
+</script>
 <div class="row">
     <div class="col-lg-12">
         <header class="jumbotron" id="overview">
@@ -20,6 +207,10 @@
 </div>
 <div class="row">
     <div class="col-md-12">
+        <div id="chart_times" style="width: 100%; height: 500px;"></div>
+        <div id="chart_jumps" style="width: 100%; height: 500px;"></div>
+        <div id="chart_skips" style="width: 100%; height: 500px;"></div>
+        <div id="chart_links" style="width: 100%; height: 500px;"></div>
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -27,7 +218,6 @@
                     <th>Framework Enabled</th>
                     <th>Date</th>
                     <th>Actions</th>
-                    <th>Clicks</th>
                 </tr>
             </thead>
             <tbody>
@@ -37,7 +227,6 @@
                     <td>{{ item.frameworkEnabled }}</td>
                     <td>{{ item.date.strftime('%Y-%m-%d %H:%M') }}</td>
                     <td>{{ item.userActions | length }}</td>
-                    <td>{{ item.userClicks | length }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
