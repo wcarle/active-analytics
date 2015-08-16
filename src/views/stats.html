@@ -27,8 +27,8 @@
         stats.enabled = computeStats(fEnabled);
         stats.disabled = computeStats(fDisabled);
         drawBarChart(stats, 'Navigation Times', 'chart_times', 'avgTime');
-        drawBarChart(stats, 'Task Jumps', 'chart_jumps', 'skips');
-        drawBarChart(stats, 'Task Skips', 'chart_skips', 'avgJumps');
+        drawBarChart(stats, 'Task Jumps', 'chart_jumps', 'avgJumps');
+        drawBarChart(stats, 'Task Skips', 'chart_skips', 'skips');
         drawLinkChart(stats);
     }
     function drawBarChart (stat, title, id, prop) {
