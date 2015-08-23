@@ -624,6 +624,7 @@ function TaskService() {
         this._data.answers = [];
         this._data.clicks  = [];
         this._data.userAgent = navigator.userAgent;
+        this._data.windowSize = $(document).width() + 'x' + $(document).height();
         this.consent();
         this.saveData();
     };

@@ -29,7 +29,7 @@ class StatService:
     for click in val['clicks']:
       clicks.append(UserClick(userid=user_id, url=click['url'], aaid=click['aaid'], href=click['href'], task=click['task'], taskid=click['taskId'], date=datetime.strptime(click['timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ")))
 
-    stat = UserStat(userid=user_id, frameworkEnabled=val['frameworkEnabled'], date=datetime.today(), userAgent=val['userAgent'], userActions=actions, userAnswers=answers, userClicks=clicks, raw=val_string)
+    stat = UserStat(userid=user_id, windowSize=val['windowSize'], frameworkEnabled=val['frameworkEnabled'], date=datetime.today(), userAgent=val['userAgent'], userActions=actions, userAnswers=answers, userClicks=clicks, raw=val_string)
     stat.put()
 
     usr = UserLog(first_name=user['first_name'], last_name=user['last_name'], nnumber=user['nnumber'], date=datetime.today())

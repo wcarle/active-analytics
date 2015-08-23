@@ -24,8 +24,8 @@
                 fDisabled.push(item);
             }
         });
-        stats.enabled = computeStats(fEnabled);
-        stats.disabled = computeStats(fDisabled);
+        stats.enabled = computeStats(fEnabled, "Enabled");
+        stats.disabled = computeStats(fDisabled, "Disabled");
         drawBarChart(stats, 'Navigation Times', 'chart_times', 'avgTime');
         drawBarChart(stats, 'Task Jumps', 'chart_jumps', 'avgJumps');
         drawBarChart(stats, 'Task Skips', 'chart_skips', 'skips');
@@ -98,10 +98,12 @@
 
         chart.draw(data, options);
     }
-    function computeStats(d) {
+    function computeStats(d, title) {
         var stat = {};
         stat.users = [];
         stat.tasks = [];
+        stat.answers = [];
+        stat.answersCSV = "";
         $.each(d, function (i, usr) {
             var s = {};
             s.date = new Date(usr.date);
@@ -109,6 +111,15 @@
             s.user = usr.userid;
             s.userAgent = usr.userAgent;
             s.tasks = [];
+
+            //Calculate surevey results
+            $.each(usr.userAnswers, function (j, answer) {
+                var qid = answer.questionid - 1;
+                if(!stat.answers[qid]) {
+                    stat.answers[qid] = [];
+                }
+                stat.answers[qid].push(answer);
+            })
 
             //Calculate actions
             $.each(usr.userActions, function(j, action) {
@@ -159,6 +170,25 @@
             //Finished
             stat.users.push(s);
         });
+
+        //Generate Stats CSV
+        for(var j = 0; j < stat.answers[0].length + 1; j++) {
+            for (var k = 0; k < stat.answers.length; k++) {
+                if (j === 0) {
+                    stat.answersCSV += stat.answers[k][0].question + ",";
+                }
+                else {
+                    stat.answersCSV += stat.answers[k][j - 1].answer + ",";
+                }
+            }
+            stat.answersCSV += "\n";
+        }
+
+        var t = $("<textarea cols='100' rows='10'>");
+        t.val(stat.answersCSV);
+        $("#csv").append("<h4>" + title + "</h4>");
+        $("#csv").append(t);
+
 
         $.each(stat.tasks, function(i, task){
             task.times = [];
@@ -211,6 +241,8 @@
         <div id="chart_jumps" style="width: 100%; height: 500px;"></div>
         <div id="chart_skips" style="width: 100%; height: 500px;"></div>
         <div id="chart_links" style="width: 100%; height: 500px;"></div>
+        <h2>Survey Results</h2>
+        <div id="csv"></div>
         <table class="table table-striped">
             <thead>
                 <tr>
