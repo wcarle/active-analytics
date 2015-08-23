@@ -178,7 +178,13 @@
                     stat.answersCSV += stat.answers[k][0].question + ",";
                 }
                 else {
-                    stat.answersCSV += stat.answers[k][j - 1].answer + ",";
+                    var a =  stat.answers[k][j - 1];
+                    if (a) {
+                        stat.answersCSV += a.answer + ",";
+                    }
+                    else {
+                        stat.answersCSV += ","
+                    }
                 }
             }
             stat.answersCSV += "\n";
