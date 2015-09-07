@@ -273,7 +273,7 @@ function TaskService() {
         {
             id: 21,
             question: "What is your current class standing?",
-            answers: ["Non-matriculated","Freshman","Sophomore ","Junior", "Senior", "Graduate"]
+            answers: ["Non-matriculated","Freshman","Sophomore ","Junior", "Senior", "Graduate", "Other"]
         },
         {
             id: 2,
