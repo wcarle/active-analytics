@@ -18,7 +18,7 @@ from src.entities.globaltrend import *
 
 logger = logging.getLogger(__name__)
 api_key = "AIzaSyCM91rdYyeFuJSS29H_zdQVUVXFc0SoBec"
-cache_time = timedelta(days=1)
+cache_time = timedelta(days=5)
 query_range = timedelta(days=14)
 extended_query_range = timedelta(days=60) #Extended query range for search queries to get more results
 disable_cache = False
