@@ -5,6 +5,7 @@ import logging
 from apiclient.errors import HttpError
 from apiclient.discovery import build
 from google.appengine.api import memcache
+from google.appengine.api import urlfetch
 from oauth2client.client import AccessTokenRefreshError
 from oauth2client.appengine import AppAssertionCredentials
 from httplib2 import Http
@@ -33,6 +34,9 @@ class ExtractionService:
     else:
       self.today = datetime.today()
     logger.info("date:" + str(self.today))
+
+    urlfetch.set_default_fetch_deadline(60) # Increase url fetch deadline for slow Google Analytics API calls
+
     self.startdate = self.today - query_range
     self.extended_startdate = self.today - extended_query_range;
     self.expdate = self.today - cache_time
