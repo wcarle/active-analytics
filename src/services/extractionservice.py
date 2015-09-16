@@ -18,7 +18,7 @@ from src.entities.globaltrend import *
 
 
 logger = logging.getLogger(__name__)
-api_key = "AIzaSyCM91rdYyeFuJSS29H_zdQVUVXFc0SoBec"
+api_key = ""
 cache_time = timedelta(days=5)
 query_range = timedelta(days=14)
 extended_query_range = timedelta(days=60) #Extended query range for search queries to get more results
@@ -36,6 +36,9 @@ class ExtractionService:
     logger.info("date:" + str(self.today))
 
     urlfetch.set_default_fetch_deadline(60) # Increase url fetch deadline for slow Google Analytics API calls
+
+    with open ("key.txt", "r") as keyfile:
+      api_key=keyfile.read().replace('\n', '')
 
     self.startdate = self.today - query_range
     self.extended_startdate = self.today - extended_query_range;

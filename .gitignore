@@ -1,3 +1,4 @@
 *.pem
 *.p12
 *.pyc
+key.txt
