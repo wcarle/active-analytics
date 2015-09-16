@@ -37,13 +37,18 @@ class ExtractionService:
 
     urlfetch.set_default_fetch_deadline(60) # Increase url fetch deadline for slow Google Analytics API calls
 
-    with open ("key.txt", "r") as keyfile:
-      api_key=keyfile.read().replace('\n', '')
+    # Fetch the API key if we haven't pulled it from the keyfile already
+    global api_key
+    if api_key == "":
+      with open ("key.txt", "r") as keyfile:
+        api_key=keyfile.read().replace('\n', '')
 
+    # Set Query Range
     self.startdate = self.today - query_range
     self.extended_startdate = self.today - extended_query_range;
     self.expdate = self.today - cache_time
 
+    # Setup analytics service authentication
     credentials = AppAssertionCredentials(scope='https://www.googleapis.com/auth/analytics.readonly')
     http_auth = credentials.authorize(Http(memcache))
     self.service = build('analytics', 'v3', http=http_auth, developerKey=api_key)
